@@ -1,0 +1,7 @@
+Play ScalaMongoDB:
+ 
+Install MongoDB
+Install SBT
+sbt update 
+jetty-run
+ 
