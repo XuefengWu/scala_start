@@ -8,8 +8,8 @@ import org.scalatra.scalate._
 class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
 	val mongo = MongoConnection()
 	val coll = mongo("blog")("msgs")
-
-	 object Template {
+	val questions = mongo("exam")("questions")
+  object Template {
 
     def style() = 
       """
@@ -38,7 +38,8 @@ class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
           <a href={url("/filter-example")}>filter example</a>
           <a href={url("/cookies-example")}>cookies example</a>
           <a href={url("/chat")}>chat demo</a>
-		  <a href={url("/scalate")}>scalate</a>
+	  <a href={url("/scalate")}>scalate</a>
+	  <a href={url("/exam")}>exam</a>	 
         </body>
       </html>
     }
@@ -47,7 +48,62 @@ class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
     contentType = "text/html"
   }
   
-  
+	post("/exam") {
+	  val newObj = MongoDBObject("subject" -> params("subject"),
+                           "o1" -> params("o1"),
+                           "o2" -> params("o2"),
+                           "o3" -> params("o3"),
+                           "o4" -> params("o4"),				     
+			   "answer" ->  params("answer"))
+		questions += newObj
+		redirect("/exam")
+	}
+
+  get("/exam"){
+    Template.page("Scalatra: Hello World",    
+		<form method="POST" action="/exam">
+		  <p>
+		Description:<br/> <textarea name="subject"/>
+		 </p>
+		  <span>Options:</span>
+		  <p>
+		    A:<input type="text" name="o1"/>
+		  </p>
+		  <p>
+		    B:<input type="text" name="o2"/>
+		  </p>
+		  <p>
+		    C:<input type="text" name="o3"/>
+		  </p>
+		  <p>
+		    D:<input type="text" name="o4"/>
+		  </p>
+		  <p>
+		    <select name="answer">
+		      <option value="o1">A</option>
+		      <option value="o2">B</option>
+		      <option value="o3">C</option>
+		      <option value="o4">D</option>
+		    </select>
+		  </p>
+		<input type="submit" value="submit"/>
+		</form>
+
+		<ul>
+		{for (l <- questions) yield <li>          
+		 {l.getOrElse("subject", "???")}-
+		  {l.getOrElse(l.getOrElse("answer","A").toString(),"???")}
+		 <ul>
+		  <li>A:{l.getOrElse("o1","???")}</li>
+		  <li>B:{l.getOrElse("o2","???")}</li>
+		  <li>C:{l.getOrElse("o3","???")}</li>
+		  <li>D:{l.getOrElse("o4","???")}</li>
+		 </ul>
+		 </li>}                       
+		 </ul>
+    )     
+  }
+
   get("/") {
     Template.page("Scalatra: Hello World",
     <h2>Hello world!</h2>
@@ -102,6 +158,6 @@ class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
   get("/chat") {
     renderTemplate("chat.ssp")
   }
-  
+   
 	protected def contextPath = request.getContextPath
 }

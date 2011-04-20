@@ -2,6 +2,8 @@ Play ScalaMongoDB:
  
 Install MongoDB
 Install SBT
+$MONGO_HOME/bin/mongod --dbpath=/path/to/place/to/save/mongodb/data
+$MONGO_HOME/bin/mongo
 sbt update 
 jetty-run
  
