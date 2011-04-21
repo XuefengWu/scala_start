@@ -41,8 +41,8 @@
 		#for (l <- questions) 
 		<li>          
 		 ${l.getOrElse("subject", "???")}-
-		  ${l.getOrElse(l.getOrElse("answer","A").toString(),"???")}-
-		 ${l.getOrElse("id","???")}
+		  ${l.getOrElse(l.getOrElse("answer","A").toString(),"???")}
+		 <span id="msg_${l.getOrElse("id","???")}" style="display:none;color:blue;font:blod;"></span>
 		 <ul>
 		  <li><button class="answer_button" id=${l.getOrElse("id","?").toString+"__o1"}>Y</button>
 		       A:${l.getOrElse("o1","???")}</li>
@@ -79,8 +79,10 @@
 	       console.log(data); 
                if(aid[1] === data){
 	        console.log('Yes!');
+	        $("#msg_"+aid[0]).html('right!').show().fadeOut(3000);
 	       } else {
 	        console.log('No~');
+	        $("#msg_"+aid[0]).html('wrong!').show().fadeOut(3000);
 	       }
 	     });
 	    });
