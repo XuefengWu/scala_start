@@ -1,105 +1,90 @@
 <!doctype html>
-<html>
-  <head>
-    <title>socket.io client test</title>
+<%@ val title: String %>
+<%@ val questions:com.mongodb.casbah.MongoCollection %>
+<%import com.mongodb.casbah.Imports._%>
+ <html>
+        <head>
+          <title>${ title }</title>
+	  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>       
+        </head>
+        <body>
+          <h1>${ title }</h1>
+          	<form method="POST" action="/exam">
+		  <p>
+		Description:<br/> <textarea name="subject"></textarea>
+		 </p>
+		  <span>Options:</span>
+		  <p>
+		    A:<input type="text" name="o1"/>
+		  </p>
+		  <p>
+		    B:<input type="text" name="o2"/>
+		  </p>
+		  <p>
+		    C:<input type="text" name="o3"/>
+		  </p>
+		  <p>
+		    D:<input type="text" name="o4"/>
+		  </p>
+		  <p>
+		    <select name="answer">
+		      <option value="o1">A</option>
+		      <option value="o2">B</option>
+		      <option value="o3">C</option>
+		      <option value="o4">D</option>
+		    </select>
+		  </p>
+		<input type="submit" value="submit"/>
+		</form>
 
-    <script src="/js/json.js"></script> <!-- for ie -->
-    <script src="/socket.io/socket.io.js"></script>
-  </head>
-  <body>
+		<ul>
+		#for (l <- questions) 
+		<li>          
+		 ${l.getOrElse("subject", "???")}-
+		  ${l.getOrElse(l.getOrElse("answer","A").toString(),"???")}-
+		 ${l.getOrElse("id","???")}
+		 <ul>
+		  <li><button class="answer_button" id=${l.getOrElse("id","?").toString+"__o1"}>Y</button>
+		       A:${l.getOrElse("o1","???")}</li>
+		  <li><button class="answer_button" id=${l.getOrElse("id","?").toString+"__o2"}>Y</button>
+		       B:${l.getOrElse("o2","???")}</li>
+		  <li><button class="answer_button" id=${l.getOrElse("id","?").toString+"__o3"}>Y</button>
+		       C:${l.getOrElse("o3","???")}</li>
+		  <li><button class="answer_button" id=${l.getOrElse("id","?").toString+"__o4"}>Y</button>
+		       D:${l.getOrElse("o4","???")}</li>
+		 </ul>
+		 </li>
+                #end
+		 </ul>
 
-    <script>
-      function addLine(txt) {
-          var el = document.createElement('p');
-          el.innerHTML = txt;
-          document.getElementById('chat').appendChild(el);
-          document.getElementById('chat').scrollTop = 1000000;
-      }
-      function message(obj){
-        if ('welcome' in obj) addLine('<em>' + esc(obj.welcome) + '</em>');
-        else if ('announcement' in obj) addLine('<em>' + esc(obj.announcement) + '</em>');
-        else if ('message' in obj) addLine('<b>' + esc(obj.message[0]) + ':</b> ' + esc(obj.message[1]));
-      }
-
-      function send(){
-        var val = document.getElementById('text').value;
-        if (val == '/lclose') {
-	      	addLine('<em>closing...</em>');
-        	socket.close();
-        } else if (val == '/ldisconnect') {
-    	      	addLine('<em>disconnecting...</em>');
-            	socket.disconnect();
-        } else {
-            socket.send(val);
-        }
-        message({ message: ['you', val] });
-        document.getElementById('text').value = '';
-      }
-
-      function esc(msg){
-        return msg.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      };
-
-      function drname(dr) {
-    	  if (dr == 1) {
-    		  return 'CONNECT_FAILED';
-    	  } else if (dr == 2) {
-    		  return 'DISCONNECT';
-    	  } else if (dr == 3) {
-    		  return 'TIMEOUT';
-    	  } else if (dr == 4) {
-    		  return 'CLOSE_FAILED';
-    	  } else if (dr == 5) {
-    		  return 'ERROR';
-    	  } else if (dr == 6) {
-    		  return 'CLOSED_REMOTELY';
-    	  } else if (dr == 7) {
-    		  return 'CLOSED';
-    	  } else {
-    		  return 'UNKNOWN['+dr+']';
-    	  }
-      }
-
-      var socket = new io.Socket(null, {});
-      socket.setMessageParser(socket.JSON_MESSAGE, {
-    	  encode: function(obj) {
-    		  return JSON.stringify(obj);
-    	  },
-    	  decode: function(str) {
-    		  return JSON.parse(str);
-    	  }
-      });
-      socket.connect();
-      socket.on('message', function(mtype, obj){
-//    	if (mtype == 1) {
-			message(obj);
-//    	}
-      });
-      socket.on('connect', function(reason, error){
-          document.getElementById('form').style.display='block';
-          document.getElementById('chat').innerHTML = '';
-      });
-      socket.on('disconnect', function(reason, error){
-    	  addLine('<b>Disconnected['+drname(reason)+']: '+error+'</b>');
-      });
-    </script>
-
-    <h1>Sample chat client</h1>
-    <div id="chat"><p>Connecting...</p></div>
-    <form id="form" onsubmit="send(); return false">
-      <input type="text" autocomplete="off" id="text"><input type="submit" value="Send">
-    </form>
-
-    <style>
-      #chat { height: 300px; overflow: auto; width: 800px; border: 1px solid #eee; font: 13px Helvetica, Arial; }
-      #chat p { padding: 8px; margin: 0; }
-      #chat p:nth-child(odd) { background: #F6F6F6; }
-      #form { width: 782px; background: #333; padding: 5px 10px; display: none; }
-      #form input[type=text] { width: 700px; padding: 5px; background: #fff; border: 1px solid #fff; }
-      #form input[type=submit] { cursor: pointer; background: #999; border: none; padding: 6px 8px; -moz-border-radius: 8px; -webkit-border-radius: 8px; margin-left: 5px; text-shadow: 0 1px 0 #fff; }
-      #form input[type=submit]:hover { background: #A2A2A2; }
-      #form input[type=submit]:active { position: relative; top: 2px; }
-    </style>
-
-  </body>
+          <hr/>
+          <a href={url("/date/2009/12/26")}>date example</a>
+          <a href={url("/form")}>form example</a>
+          <a href={url("/upload")}>upload</a>
+          <a href={url("/")}>hello world</a>
+          <a href={url("/flash-map/form")}>flash scope</a>
+          <a href={url("/login")}>login</a>
+          <a href={url("/logout")}>logout</a>
+          <a href={url("/filter-example")}>filter example</a>
+          <a href={url("/cookies-example")}>cookies example</a>
+          <a href={url("/chat")}>chat demo</a>
+	  <a href={url("/scalate")}>scalate</a>
+	  <a href={url("/exam")}>exam</a>
+	  <script language="javascript" type="text/javascript">
+	    $(document).ready(function(){
+	    $(".answer_button").click(function(){	  
+	     var aid = $(this).attr("id").split("__");
+	    	   
+	     $.post("/answer",{id:aid[0],sel:aid[1]},function(data){
+	       console.log(data); 
+               if(aid[1] === data){
+	        console.log('Yes!');
+	       } else {
+	        console.log('No~');
+	       }
+	     });
+	    });
+	    });
+	  </script>
+        </body>
 </html>

@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import scala.xml._ 
 import org.scalatra._ 
 import org.scalatra.scalate._
+import java.util.UUID
  
 class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
 	val mongo = MongoConnection()
@@ -22,6 +23,7 @@ class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
       <html>
         <head>
           <title>{ title }</title>
+	  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
           <style>{ Template.style }</style>
         </head>
         <body>
@@ -54,56 +56,25 @@ class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
                            "o2" -> params("o2"),
                            "o3" -> params("o3"),
                            "o4" -> params("o4"),				     
-			   "answer" ->  params("answer"))
+			   "answer" ->  params("answer"),
+			   "id" -> UUID.randomUUID().toString())
 		questions += newObj
 		redirect("/exam")
 	}
 
   get("/exam"){
-    Template.page("Scalatra: Hello World",    
-		<form method="POST" action="/exam">
-		  <p>
-		Description:<br/> <textarea name="subject"/>
-		 </p>
-		  <span>Options:</span>
-		  <p>
-		    A:<input type="text" name="o1"/>
-		  </p>
-		  <p>
-		    B:<input type="text" name="o2"/>
-		  </p>
-		  <p>
-		    C:<input type="text" name="o3"/>
-		  </p>
-		  <p>
-		    D:<input type="text" name="o4"/>
-		  </p>
-		  <p>
-		    <select name="answer">
-		      <option value="o1">A</option>
-		      <option value="o2">B</option>
-		      <option value="o3">C</option>
-		      <option value="o4">D</option>
-		    </select>
-		  </p>
-		<input type="submit" value="submit"/>
-		</form>
-
-		<ul>
-		{for (l <- questions) yield <li>          
-		 {l.getOrElse("subject", "???")}-
-		  {l.getOrElse(l.getOrElse("answer","A").toString(),"???")}
-		 <ul>
-		  <li>A:{l.getOrElse("o1","???")}</li>
-		  <li>B:{l.getOrElse("o2","???")}</li>
-		  <li>C:{l.getOrElse("o3","???")}</li>
-		  <li>D:{l.getOrElse("o4","???")}</li>
-		 </ul>
-		 </li>}                       
-		 </ul>
-    )     
+     renderTemplate("exam.ssp",("title" -> "Hello Scalatra"),("questions" -> questions))    
   }
 
+  post("/answer"){
+    //find answer by id and check with selected value
+    val q = MongoDBObject("id" -> params("id"))
+    val result = questions.findOne(q) match {
+	case Some(v) => v.getOrElse("answer","???")
+        case None => "N"
+    }
+    result
+  }
   get("/") {
     Template.page("Scalatra: Hello World",
     <h2>Hello world!</h2>
