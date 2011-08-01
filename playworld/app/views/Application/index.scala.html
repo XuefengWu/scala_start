@@ -1,0 +1,21 @@
+@(title:String,users:Seq[models.User])
+
+@main(title) {
+    
+    @title
+    @if(users) {
+     
+    <h2>Here is a list of your current users:Seq:</h2>
+     
+    <ul>
+    @users.map { user =>
+        <li>@user.name</li>
+    }
+    </ul>
+     
+	} else {
+	     
+	    <h2>You don't have any user yet...</h2>
+	     
+	}
+}

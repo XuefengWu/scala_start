@@ -1,0 +1,28 @@
+# Application dependencies
+
+require:
+    - play
+    - play -> scala 0.9.1
+    - com.twitter -> querulous 2.3.3
+
+# My custom repositories
+repositories:
+    
+    - zenexity:
+        type:       http
+        artifact:   "http://www.zenexity.com/repo/[module]-[revision].[ext]"
+        contains:
+            - com.zenexity -> *
+            
+    - jboss:
+        type: iBiblio
+        root: "http://repository.jboss.org/nexus/content/groups/public-jboss/"
+        contains:
+            - org.jbpm -> *
+            - org.drools -> *
+            
+    - twitter:
+        type: iBiblio
+        root: "http://maven.twttr.com/"
+        contains:
+            - com.twitter -> *
