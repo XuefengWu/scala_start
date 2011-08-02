@@ -1,6 +1,7 @@
 ﻿lib
 lib/*
 playworld/lib
+playworld/tmp
 playakka/lib
 .ensime
 .ensime.bak
