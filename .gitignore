@@ -1,0 +1,6 @@
+﻿lib
+lib/*
+playworld/lib
+playakka/lib
+.ensime
+.ensime.bak

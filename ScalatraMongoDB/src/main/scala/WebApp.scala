@@ -75,6 +75,7 @@ class WebApp extends ScalatraServlet  with UrlSupport  with ScalateSupport{
     }
     result
   }
+  
   get("/") {
     Template.page("Scalatra: Hello World",
     <h2>Hello world!</h2>
