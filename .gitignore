@@ -5,3 +5,10 @@ playworld/tmp
 playakka/lib
 .ensime
 .ensime.bak
+hellocommand/logs
+hellocommand/project/project
+hellocommand/project/target
+hellocommand/target
+hellocommand/tmp
+hellocommand/.idea
+hellocommand/.idea_modules
