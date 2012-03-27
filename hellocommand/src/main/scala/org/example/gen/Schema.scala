@@ -12,9 +12,7 @@ import java.io.{FileWriter, File}
 
 object Schema {
 
-  def gen(model:String)(implicit baseDir:String){
-
-    def genSchema = """
+  def gen(model:String) = """
 #%s schema
 
 # --- !Ups
@@ -31,16 +29,4 @@ DROP TABLE %s;
 DROP SEQUENCE %s_id_seq;
     """.format(model.capitalize,model,model,model,model,model)
 
-    val evDir = new File(baseDir+"/conf/evolutions/default")
-
-    if(!evDir.exists())
-      evDir.mkdirs()
-
-    //calculate the last evolution number
-    val evNum = evDir.list().map(_.dropRight(4).toInt).max + 1
-    val sFile = new File(baseDir+"/conf/evolutions/default/%d.sql".format(evNum))
-    val out:FileWriter = new FileWriter(sFile)
-    out.write(genSchema)
-    out.close()
-  }
 }

@@ -31,13 +31,78 @@ object ScaffoldPlugin extends Plugin {
       if(mFile.exists()){
         System.out.print(model + " is alread exists.\n do nothing.")
       }else{
-        Model.gen(m)
-        Schema.gen(m)
-        Controller.gen(m)
-        Template.gen(m)
-        Routers.gen(m)
+        genModel(m)
+        genSchema(m)
+        genController(m)
+        genTemplate(m)
+        genRouters(m)
       }
       state
     }
 
+  private def genTemplate(model:String)(implicit baseDir:String) {
+
+    //check app/view/[model] folder
+    val tDirPath = "%s/app/views/%s".format(baseDir,model)
+    val tDir = new File(tDirPath)
+
+    if(!tDir.exists())
+      tDir.mkdirs()
+
+
+    val outList:FileWriter = new FileWriter(tDirPath+"/list.scala.html")
+    outList.write(Template.genList(model))
+    outList.close()
+
+    val outEdit:FileWriter = new FileWriter(tDirPath+"/edit.scala.html")
+    outEdit.write(Template.genEdit(model))
+    outEdit.close()
+
+    val outCreate:FileWriter = new FileWriter(tDirPath+"/create.scala.html")
+    outCreate.write(Template.genCreate(model))
+    outCreate.close()
+  }
+
+  private def genRouters(model:String)(implicit baseDir:String){
+    val out = new FileWriter(baseDir+"/conf/routes",true)
+    out.write(Routers.gen(model))
+    out.close()
+  }
+
+  private def genController(model:String)(implicit baseDir:String){
+    
+    //check app/controllers folder
+    val evDir = new File(baseDir + "/app/controllers")
+
+    if (!evDir.exists())
+      evDir.mkdir()
+    //create [model]s.scala
+    val cFile = new File(baseDir + "/app/controllers/%ss.scala".format(model.capitalize))
+    if (cFile.exists())
+      System.out.print(model + " is alread exists")
+
+    implicit val out: FileWriter = new FileWriter(cFile) 
+    out.write(Controller.gen(model)) 
+    out.close()
+  }
+  
+  private def genModel(model:String)(implicit baseDir:String){
+    val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
+    out.write(Model.gen(model))
+    out.close()
+  }
+  
+  private def genSchema(model:String)(implicit baseDir:String) {
+    val evDir = new File(baseDir+"/conf/evolutions/default")
+
+    if(!evDir.exists())
+      evDir.mkdirs()
+
+    //calculate the last evolution number
+    val evNum = evDir.list().map(_.dropRight(4).toInt).max + 1
+    val sFile = new File(baseDir+"/conf/evolutions/default/%d.sql".format(evNum))
+    val out:FileWriter = new FileWriter(sFile)
+    out.write(Schema.gen(model))
+    out.close()
+  }
 }

@@ -11,7 +11,8 @@ import java.io.{File, FileWriter}
  */
 
 object Controller {
-  def gen(model: String)(implicit baseDir: String) {
+  def gen(model: String)={
+
     def genForm ={
 
       """val %sForm = Form(
@@ -22,7 +23,7 @@ object Controller {
     )
       """.format(model, model.capitalize, model.capitalize)
     }
-    
+
     def genActions= {
 
       def genList = """
@@ -30,7 +31,7 @@ object Controller {
       Ok(views.html.%s.list(%s.list(),%sForm))
     }
       """.format(model, model.capitalize, model)
-     
+
       def genSave = """
       def save = Action { implicit request =>
         %sForm.bindFromRequest.fold(
@@ -42,23 +43,23 @@ object Controller {
         )
       }
       """.format( model, model,model.capitalize, model.capitalize, model.capitalize)
-      
+
       def genDelete = """
       def delete(id:Long) = Action {
       %s.delete(id)
       Redirect(routes.%ss.list)
     }
     """.format(model.capitalize, model.capitalize)
-      
+
       def genEdit ="""
     def edit(id: Long) = Action {
       %s.findById(id).map { v =>
         Ok(views.html.%s.edit(id, %sForm.fill(v)))
       }.getOrElse(NotFound)
     }
-     """.format(model.capitalize, model, model) 
-        
-      
+     """.format(model.capitalize, model, model)
+
+
       def genUpdate = """
     def update(id: Long) = Action { implicit request =>
       %sForm.bindFromRequest.fold(
@@ -70,13 +71,13 @@ object Controller {
       )
     }
      """.format(model,model,model.capitalize,model.capitalize)
-      
+
       def genCreate = """
     def create = Action {
       Ok(views.html.%s.create(%sForm))
     }
      """.format(model,model)
-      
+
       val result = new StringBuffer()
 
       result.append(genList)
@@ -93,7 +94,7 @@ object Controller {
 
       result.toString
     }
-    
+
     def genControllerHead = """
 package controllers
 
@@ -109,27 +110,18 @@ object %ss extends Controller {
     """.format(model.capitalize, model.capitalize)
 
     def genControllerEnd = "}"
-    //check app/controllers folder
-    val evDir = new File(baseDir + "/app/controllers")
-
-    if (!evDir.exists())
-      evDir.mkdir()
-    //create [model]s.scala
-    val cFile = new File(baseDir + "/app/controllers/%ss.scala".format(model.capitalize))
-    if (cFile.exists())
-      System.out.print(model + " is alread exists")
-
-    implicit val out: FileWriter = new FileWriter(cFile)
-
-    out.write(genControllerHead)
 
 
-    out.write(genForm)
+    val result = new StringBuffer()
+    result.append(genControllerHead)
 
-    out.write(genActions)
 
-    out.write(genControllerEnd)
-    out.close()
+    result.append(genForm)
+
+    result.append(genActions)
+
+    result.append(genControllerEnd)
+    result.toString
   }
 
 }

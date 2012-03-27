@@ -11,7 +11,7 @@ import java.io.FileWriter
  */
 
 object Routers {
-  def gen(model: String)(implicit baseDir:String) {
+  def gen(model: String)= {
 
     def genRoutes = """
 
@@ -30,8 +30,6 @@ POST    /%ss/:id/delete           controllers.%ss.delete(id:Long)
       model,model.capitalize,
       model,model.capitalize)
 
-    val out = new FileWriter(baseDir+"/conf/routes",true)
-    out.write(genRoutes)
-    out.close()
+    genRoutes
   }
 }

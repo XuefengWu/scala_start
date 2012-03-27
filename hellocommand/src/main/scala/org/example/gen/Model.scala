@@ -13,12 +13,16 @@ import java.io.FileWriter
 object Model {
 
 
-  def gen(model:String)(implicit baseDir:String) {
+  def gen(model:String)= {
     //create [models].scala
-
-
-    def genHead = {
-      """
+    val result = new StringBuffer()
+    result.append(genHead)
+    result.append(genCaseClass(model))
+    result.append(genService(model))
+    result.toString
+  }
+  private  def genHead = {
+    """
 package models
 
 import anorm._
@@ -28,13 +32,6 @@ import play.api.Play.current
 
 
     """
-    }
-
-    implicit val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
-    out.write(genHead)
-    out.write(genCaseClass(model))
-    out.write(genService(model))
-    out.close()
   }
 
   private def genCaseClass(m:String)={
