@@ -33,22 +33,10 @@ import play.api.Play.current
 
   private def genCaseClass(m:String)(implicit out:FileWriter){
     //create case class
-    out.write("case class %s(id:Long, title:String)\n".format(m.capitalize))
 
     out.write("""
-    case class %s(id:Long, title:String) {
-      def save() = {
-        if(id > 0){
-          DB.withConnection { implicit c =>
-            SQL("update %s set label = {label} where id = {id}")
-              .on('title -> title,'id -> id).executeUpdate()
-          }
-        } else {
-          Task.create(label)
-        }
-      }
-    }
-    """.format(m.capitalize,m))
+    case class %s(id:Pk[Long], title:String)
+    """.format(m.capitalize))
   }
 
   private def genService(m:String)(implicit out:FileWriter) {
@@ -56,7 +44,7 @@ import play.api.Play.current
     //genSqlPareser
     out.write("""
         val %s = {
-        get[Long]("id") ~
+        get[Pk[Long]]("id") ~
         get[String]("title") map {
           case id~title => %s(id,title)
         }
@@ -71,20 +59,20 @@ import play.api.Play.current
       """.format(m.capitalize,m,m))
 
     out.write("""
-        def create(title:String) {
+        def create(u:%s) {
         DB.withConnection { implicit c =>
           SQL("insert into %s (title) values ({title})").on(
-          'title -> title
+          'title -> u.title
           ).executeUpdate()
         }
       }
-      """.format(m))
+      """.format(m.capitalize,m))
 
     out.write("""
-  def find(id: Long) =  DB.withConnection { implicit c =>
-      SQL("select * from %s where {id}").on('id -> id).single(%s)
+  def findById(id: Long) =  DB.withConnection { implicit c =>
+      SQL("select * from %s where  id = {id}").on('id -> id).as(%s.singleOpt)
   }
-    """.format(m))
+    """.format(m,m))
 
     out.write("""
       def delete(id:Long){
@@ -95,6 +83,21 @@ import play.api.Play.current
         }
       }
       """.format(m))
+
+    out.write("""
+          def update(id: Long, u: User) = {
+
+        DB.withConnection { implicit connection =>
+          SQL(
+            "update user set title = {title} where id = {id}"
+          ).on(
+            'id -> id,
+            'title -> u.title
+          ).executeUpdate()
+        }
+      }
+    """.format(m))
+
     out.write("}")
   }
 }

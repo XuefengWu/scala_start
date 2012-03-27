@@ -19,32 +19,109 @@ object Template {
     def genList(tDirPath:String){
       val out:FileWriter = new FileWriter(tDirPath+"/list.scala.html")
       out.write("""
-@(%ss:List[%s], %sForm: Form[String])
+@(%ss:List[%s], %sForm: Form[%s])
 
 @import helper._
 
 @main("%s List") {
 
     <h1>@%ss.size %s(s)</h1>
-    <ul>
+<table class="zebra-striped">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
         @%ss.map { v =>
-            <li>
-                @v.title
-                @form(routes.%ss.delete%s(v.id)){
+        <tr>
+         <td><a href="@routes.%ss.edit(v.id.get)">@v.title</a></td>
+          <td>@form(routes.%ss.delete(v.id.get)){
                     <input type="submit" value="Delete">
                 }
-            </li>
+          </td>
+        </tr>
         }
-    </ul>
+    </tbody>
+    </table>
 
     <h2>Add a new %s</h2>
-    @form(routes.%ss.new%s) {
-        @inputText(%sForm("title"))
-        <input type="submit" value="Create">
-    }
+    <a class="btn success" id="add" href="@routes.%ss.create()">Add a new %s</a>
 }
-      """.format(model,model.capitalize,model,model.capitalize,model,
-        model,model,model.capitalize,model.capitalize,model,model.capitalize,model.capitalize,model))
+      """.format(model,model.capitalize,model,model.capitalize,model.capitalize,
+        model, model,model,model.capitalize,model.capitalize,
+        model.capitalize,model.capitalize,model))
+
+      out.close()
+    }
+
+    def genEdit(tDirPath:String) {
+      val out:FileWriter = new FileWriter(tDirPath+"/edit.scala.html")
+      out.write("""
+@(id: Long, %sForm: Form[%s])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("edit") {
+
+    <h1>Edit %s</h1>
+
+    @form(routes.%ss.update(id)) {
+
+        <fieldset>
+           @inputText(%sForm("title"))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Save this %s" class="btn primary"> or
+            <a href="@routes.%ss.list()" class="btn">Cancel</a>
+        </div>
+
+    }
+
+    @form(routes.%ss.delete(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this %s" class="btn danger">
+    }
+
+}
+      """.format(model,model.capitalize,
+        model,model.capitalize,model,
+        model,model.capitalize,model.capitalize,model))
+      out.close()
+    }
+    def genCreate(tDirPath:String) {
+      val out:FileWriter = new FileWriter(tDirPath+"/create.scala.html")
+      out.write("""
+@(%sForm: Form[%s])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("create") {
+
+    <h1>Add a %s</h1>
+
+    @form(routes.%ss.save()) {
+
+        <fieldset>
+            @inputText(%sForm("title"), '_label -> "%s name")
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Create this %s" class="btn primary"> or
+            <a href="@routes.%ss.list()" class="btn">Cancel</a>
+        </div>
+
+    }
+
+}
+      """.format(model,model.capitalize,
+        model,model.capitalize,model,model,
+        model,model.capitalize))
       out.close()
     }
     //check app/view/[model] folder
@@ -55,5 +132,7 @@ object Template {
       tDir.mkdirs()
 
     genList(tDirPath)
+    genEdit(tDirPath)
+    genCreate(tDirPath)
   }
 }

@@ -16,11 +16,19 @@ object Routers {
     out.write("""
 
 # %ss
-GET     /%ss                      controllers.%ss.%ss
-POST    /%ss                      controllers.%ss.new%s
-POST    /%ss/:id/delete           controllers.%ss.delete%s(id:Long)
-    """.format(model.capitalize,model,model.capitalize,model,model,model.capitalize,
-      model.capitalize,model,model.capitalize,model.capitalize))
+GET     /%ss                      controllers.%ss.list
+GET     /%ss/new                  controllers.%ss.create
+GET     /%ss/:id                  controllers.%ss.edit(id:Long)
+POST    /%ss/:id                  controllers.%ss.update(id:Long)
+POST    /%ss                      controllers.%ss.save
+POST    /%ss/:id/delete           controllers.%ss.delete(id:Long)
+    """.format(model.capitalize,
+      model,model.capitalize,
+      model,model.capitalize,
+      model,model.capitalize,
+      model,model.capitalize,
+      model,model.capitalize,
+      model,model.capitalize))
 
     out.close()
   }

@@ -11,52 +11,85 @@ import java.io.{File, FileWriter}
  */
 
 object Controller {
-  def gen(model:String)(implicit baseDir:String){
-    def genForm(implicit out:FileWriter){
+  def gen(model: String)(implicit baseDir: String) {
+    def genForm(implicit out: FileWriter) {
       out.write("""
     val %sForm = Form(
-      "title" -> nonEmptyText
+      mapping(
+        "id" -> ignored(NotAssigned:Pk[Long]),
+        "title" -> nonEmptyText
+      )(%s.apply)(%s.unapply)
     )
-      """.format(model))
+      """.format(model, model.capitalize, model.capitalize))
     }
-    def genActions(implicit out:FileWriter){
+    def genActions(implicit out: FileWriter) {
 
       out.write("""
-    def %ss = Action {
+    def list = Action {
       Ok(views.html.%s.list(%s.list(),%sForm))
     }
-      """.format(model,model,model.capitalize,model))
+      """.format(model, model.capitalize, model))
 
       out.write("""
-      def new%s = Action { implicit request =>
+      def save = Action { implicit request =>
         %sForm.bindFromRequest.fold(
           errors => BadRequest(views.html.%s.list(%s.list(),errors)),
-          title => {
-            %s.create(title)
-            Redirect(routes.%ss.%ss)
+          v => {
+            %s.create(v)
+            Redirect(routes.%ss.list)
           }
         )
       }
-      """.format(model.capitalize,model,model,model.capitalize,model.capitalize,model.capitalize,model))
+      """.format( model, model,model.capitalize, model.capitalize, model.capitalize))
 
       out.write("""
-      def delete%s(id:Long) = Action {
+      def delete(id:Long) = Action {
       %s.delete(id)
-      Redirect(routes.%ss.%ss)
+      Redirect(routes.%ss.list)
     }
-    """.format(model.capitalize,model.capitalize,model.capitalize,model))
-    }
-    //check app/controllers folder
-    val evDir = new File(baseDir+"/app/controllers")
+    """.format(model.capitalize, model.capitalize))
 
-    if(!evDir.exists())
+      out.write("""
+    def edit(id: Long) = Action {
+      %s.findById(id).map { v =>
+        Ok(views.html.%s.edit(id, %sForm.fill(v)))
+      }.getOrElse(NotFound)
+    }
+     """.format(model.capitalize, model, model))
+
+
+      out.write("""
+    def update(id: Long) = Action { implicit request =>
+      %sForm.bindFromRequest.fold(
+        formWithErrors => BadRequest(views.html.%s.edit(id, formWithErrors)),
+        v => {
+          %s.update(id, v)
+          Redirect(routes.%ss.list).flashing("success" -> "%%s has been updated".format(v.title))
+        }
+      )
+    }
+     """.format(model,model,model.capitalize,model.capitalize))
+
+
+      out.write("""
+    def create = Action {
+      Ok(views.html.%s.create(%sForm))
+    }
+     """.format(model,model))
+
+    }
+
+    //check app/controllers folder
+    val evDir = new File(baseDir + "/app/controllers")
+
+    if (!evDir.exists())
       evDir.mkdir()
     //create [model]s.scala
-    val cFile = new File(baseDir+"/app/controllers/%ss.scala".format(model.capitalize))
-    if(cFile.exists())
+    val cFile = new File(baseDir + "/app/controllers/%ss.scala".format(model.capitalize))
+    if (cFile.exists())
       System.out.print(model + " is alread exists")
 
-    implicit val out:FileWriter = new FileWriter(cFile)
+    implicit val out: FileWriter = new FileWriter(cFile)
     out.write("""
 package controllers
 
@@ -65,10 +98,11 @@ import play.api.mvc._
 
 import play.api.data._
 import play.api.data.Forms._
+import anorm.{Pk, NotAssigned}
 import models.%s
 
 object %ss extends Controller {
-    """.format(model.capitalize,model.capitalize))
+    """.format(model.capitalize, model.capitalize))
 
 
     genForm
