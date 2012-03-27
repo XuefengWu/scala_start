@@ -15,8 +15,10 @@ object Model {
 
   def gen(model:String)(implicit baseDir:String) {
     //create [models].scala
-    implicit val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
-    out.write("""
+
+
+    def genHead = {
+      """
 package models
 
 import anorm._
@@ -25,40 +27,42 @@ import play.api.db._
 import play.api.Play.current
 
 
-    """)
-    genCaseClass(model)
-    genService(model)
+    """
+    }
+
+    implicit val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
+    out.write(genHead)
+    out.write(genCaseClass(model))
+    out.write(genService(model))
     out.close()
   }
 
-  private def genCaseClass(m:String)(implicit out:FileWriter){
+  private def genCaseClass(m:String)={
     //create case class
-
-    out.write("""
+    """
     case class %s(id:Pk[Long], title:String)
-    """.format(m.capitalize))
+    """.format(m.capitalize)
   }
 
-  private def genService(m:String)(implicit out:FileWriter) {
-    out.write("object %s {\n".format(m.capitalize))
-    //genSqlPareser
-    out.write("""
+  private def genService(m:String)= {
+    def genObjectHead = "object %s {\n".format(m.capitalize)
+
+    def genSqlPareser = """
         val %s = {
         get[Pk[Long]]("id") ~
         get[String]("title") map {
           case id~title => %s(id,title)
         }
       }
-      """.format(m,m.capitalize))
+      """.format(m,m.capitalize)
 
-    //genMethods
-    out.write("""
+    def genList = """
       def list(): List[%s] = DB.withConnection{ implicit c =>
           SQL("select * from %s").as(%s *)
         }
-      """.format(m.capitalize,m,m))
+      """.format(m.capitalize,m,m)
 
-    out.write("""
+    def genCreate = """
         def create(u:%s) {
         DB.withConnection { implicit c =>
           SQL("insert into %s (title) values ({title})").on(
@@ -66,15 +70,15 @@ import play.api.Play.current
           ).executeUpdate()
         }
       }
-      """.format(m.capitalize,m))
+      """.format(m.capitalize,m)
 
-    out.write("""
+    def genFindById = """
   def findById(id: Long) =  DB.withConnection { implicit c =>
       SQL("select * from %s where  id = {id}").on('id -> id).as(%s.singleOpt)
   }
-    """.format(m,m))
+    """.format(m,m)
 
-    out.write("""
+    def genDelete = """
       def delete(id:Long){
         DB.withConnection{ implicit c =>
           SQL("delete from %s where id = {id}").on(
@@ -82,9 +86,9 @@ import play.api.Play.current
           ).executeUpdate()
         }
       }
-      """.format(m))
+      """.format(m)
 
-    out.write("""
+    def genUpdate = """
           def update(id: Long, u: User) = {
 
         DB.withConnection { implicit connection =>
@@ -96,8 +100,28 @@ import play.api.Play.current
           ).executeUpdate()
         }
       }
-    """.format(m))
+    """.format(m)
 
-    out.write("}")
+    def genObjectEnd = "}"
+
+    val result = new StringBuffer
+
+    result.append(genObjectHead)
+    //genSqlPareser
+    result.append(genSqlPareser)
+    //genMethods
+    result.append(genList)
+
+    result.append(genCreate)
+
+    result.append(genFindById)
+
+    result.append(genDelete)
+
+    result.append(genUpdate)
+
+    result.append(genObjectEnd)
+
+    result.toString
   }
 }

@@ -8,6 +8,7 @@
 
 import java.io.File
 
+object category {
 val dir = "E:\\TDDOWNLOAD\\VoidBook\\家常读书"
 val Cat = "(.*)【家常读书[·|.](.*)】(.*)".r
 new File(dir).listFiles().foreach{f =>
@@ -29,4 +30,7 @@ def copy(src:File, dest:File) {
   import java.io.{File,FileInputStream,FileOutputStream}
   new FileOutputStream(dest) getChannel() transferFrom(
     new FileInputStream(src) getChannel, 0, Long.MaxValue )
+}
+
+
 }

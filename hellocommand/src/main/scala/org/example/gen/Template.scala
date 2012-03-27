@@ -16,9 +16,8 @@ object Template {
   def gen(model:String)(implicit baseDir:String){
 
 
-    def genList(tDirPath:String){
-      val out:FileWriter = new FileWriter(tDirPath+"/list.scala.html")
-      out.write("""
+    def genList={
+     """
 @(%ss:List[%s], %sForm: Form[%s])
 
 @import helper._
@@ -51,14 +50,12 @@ object Template {
 }
       """.format(model,model.capitalize,model,model.capitalize,model.capitalize,
         model, model,model,model.capitalize,model.capitalize,
-        model.capitalize,model.capitalize,model))
+        model.capitalize,model.capitalize,model)
 
-      out.close()
     }
 
-    def genEdit(tDirPath:String) {
-      val out:FileWriter = new FileWriter(tDirPath+"/edit.scala.html")
-      out.write("""
+    def genEdit ={
+     """
 @(id: Long, %sForm: Form[%s])
 
 @import helper._
@@ -89,12 +86,11 @@ object Template {
 }
       """.format(model,model.capitalize,
         model,model.capitalize,model,
-        model,model.capitalize,model.capitalize,model))
-      out.close()
+        model,model.capitalize,model.capitalize,model)
+
     }
-    def genCreate(tDirPath:String) {
-      val out:FileWriter = new FileWriter(tDirPath+"/create.scala.html")
-      out.write("""
+    def genCreate= {
+      """
 @(%sForm: Form[%s])
 
 @import helper._
@@ -121,8 +117,8 @@ object Template {
 }
       """.format(model,model.capitalize,
         model,model.capitalize,model,model,
-        model,model.capitalize))
-      out.close()
+        model,model.capitalize)
+
     }
     //check app/view/[model] folder
     val tDirPath = "%s/app/views/%s".format(baseDir,model)
@@ -131,8 +127,17 @@ object Template {
     if(!tDir.exists())
       tDir.mkdirs()
 
-    genList(tDirPath)
-    genEdit(tDirPath)
-    genCreate(tDirPath)
+
+    val outList:FileWriter = new FileWriter(tDirPath+"/list.scala.html")
+    outList.write(genList)
+    outList.close()
+
+    val outEdit:FileWriter = new FileWriter(tDirPath+"/edit.scala.html")
+    outEdit.write(genEdit)
+    outEdit.close()
+
+    val outCreate:FileWriter = new FileWriter(tDirPath+"/create.scala.html")
+    outCreate.write(genCreate)
+    outCreate.close()
   }
 }
