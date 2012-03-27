@@ -13,89 +13,31 @@ import java.io.{File, FileWriter}
 object Controller {
   def gen(model: String)={
 
-    def genForm ={
+    val result = new StringBuffer()
+    result.append(genControllerHead(model))
 
-      """val %sForm = Form(
-      mapping(
-        "id" -> ignored(NotAssigned:Pk[Long]),
-        "title" -> nonEmptyText
-      )(%s.apply)(%s.unapply)
-    )
-      """.format(model, model.capitalize, model.capitalize)
-    }
+    result.append(genForm(model))
 
-    def genActions= {
+    result.append(genActions(model))
 
-      def genList = """
-    def list = Action {
-      Ok(views.html.%s.list(%s.list(),%sForm))
-    }
-      """.format(model, model.capitalize, model)
+    result.append(genControllerEnd)
+    result.toString
+  }
 
-      def genSave = """
-      def save = Action { implicit request =>
-        %sForm.bindFromRequest.fold(
-          errors => BadRequest(views.html.%s.list(%s.list(),errors)),
-          v => {
-            %s.create(v)
-            Redirect(routes.%ss.list)
-          }
-        )
-      }
-      """.format( model, model,model.capitalize, model.capitalize, model.capitalize)
+  def genControllerEnd = "}"
 
-      def genDelete = """
-      def delete(id:Long) = Action {
-      %s.delete(id)
-      Redirect(routes.%ss.list)
-    }
-    """.format(model.capitalize, model.capitalize)
+  def genForm(model: String)={
 
-      def genEdit ="""
-    def edit(id: Long) = Action {
-      %s.findById(id).map { v =>
-        Ok(views.html.%s.edit(id, %sForm.fill(v)))
-      }.getOrElse(NotFound)
-    }
-     """.format(model.capitalize, model, model)
+    """val %sForm = Form(
+    mapping(
+      "id" -> ignored(NotAssigned:Pk[Long]),
+      "title" -> nonEmptyText
+    )(%s.apply)(%s.unapply)
+  )
+    """.format(model, model.capitalize, model.capitalize)
+  }
 
-
-      def genUpdate = """
-    def update(id: Long) = Action { implicit request =>
-      %sForm.bindFromRequest.fold(
-        formWithErrors => BadRequest(views.html.%s.edit(id, formWithErrors)),
-        v => {
-          %s.update(id, v)
-          Redirect(routes.%ss.list).flashing("success" -> "%%s has been updated".format(v.title))
-        }
-      )
-    }
-     """.format(model,model,model.capitalize,model.capitalize)
-
-      def genCreate = """
-    def create = Action {
-      Ok(views.html.%s.create(%sForm))
-    }
-     """.format(model,model)
-
-      val result = new StringBuffer()
-
-      result.append(genList)
-
-      result.append(genSave)
-
-      result.append(genDelete)
-
-      result.append(genEdit)
-
-      result.append(genUpdate)
-
-      result.append(genCreate)
-
-      result.toString
-    }
-
-    def genControllerHead = """
+  def genControllerHead(model:String) = """
 package controllers
 
 import play.api._
@@ -109,18 +51,75 @@ import models.%s
 object %ss extends Controller {
     """.format(model.capitalize, model.capitalize)
 
-    def genControllerEnd = "}"
 
+  def genActions(model: String)= {
+
+    def genList = """
+    def list = Action {
+      Ok(views.html.%s.list(%s.list(),%sForm))
+    }
+      """.format(model, model.capitalize, model)
+
+    def genSave = """
+      def save = Action { implicit request =>
+        %sForm.bindFromRequest.fold(
+          errors => BadRequest(views.html.%s.list(%s.list(),errors)),
+          v => {
+            %s.create(v)
+            Redirect(routes.%ss.list)
+          }
+        )
+      }
+      """.format( model, model,model.capitalize, model.capitalize, model.capitalize)
+
+    def genDelete = """
+      def delete(id:Long) = Action {
+      %s.delete(id)
+      Redirect(routes.%ss.list)
+    }
+    """.format(model.capitalize, model.capitalize)
+
+    def genEdit ="""
+    def edit(id: Long) = Action {
+      %s.findById(id).map { v =>
+        Ok(views.html.%s.edit(id, %sForm.fill(v)))
+      }.getOrElse(NotFound)
+    }
+     """.format(model.capitalize, model, model)
+
+
+    def genUpdate = """
+    def update(id: Long) = Action { implicit request =>
+      %sForm.bindFromRequest.fold(
+        formWithErrors => BadRequest(views.html.%s.edit(id, formWithErrors)),
+        v => {
+          %s.update(id, v)
+          Redirect(routes.%ss.list).flashing("success" -> "%%s has been updated".format(v.title))
+        }
+      )
+    }
+     """.format(model,model,model.capitalize,model.capitalize)
+
+    def genCreate = """
+    def create = Action {
+      Ok(views.html.%s.create(%sForm))
+    }
+     """.format(model,model)
 
     val result = new StringBuffer()
-    result.append(genControllerHead)
 
+    result.append(genList)
 
-    result.append(genForm)
+    result.append(genSave)
 
-    result.append(genActions)
+    result.append(genDelete)
 
-    result.append(genControllerEnd)
+    result.append(genEdit)
+
+    result.append(genUpdate)
+
+    result.append(genCreate)
+
     result.toString
   }
 
