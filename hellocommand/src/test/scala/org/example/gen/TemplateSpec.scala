@@ -23,7 +23,7 @@ class TemplateSpec  extends SpecificationWithJUnit  {
       hello.render must contain ("world")
     }
     "work with file " in {
-      val lines = scala.io.Source.fromFile("src/main/resource/list.html").mkString
+      val lines = scala.io.Source.fromFile("src/main/resource/template/list.html").mkString
       println(lines)
       val st = new ST(lines,'$','$')
       st.add("model", model)
