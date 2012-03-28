@@ -3,7 +3,7 @@ package models
 import com.twitter.querulous.evaluator.QueryEvaluator
 
 trait DB {
-  val queryEvaluator = QueryEvaluator("localhost:3306/pinche", "root", "")
+  val queryEvaluator = QueryEvaluator("localhost:3306/pinche", "root", "g00dluck")
 }
 case class User(id: Int, name: String)
 case class Line(id: Int, title: String)
