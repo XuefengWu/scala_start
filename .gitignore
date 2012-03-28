@@ -2,6 +2,7 @@
 lib/*
 playworld/lib
 playworld/tmp
+playworld/eclipse
 playakka/lib
 .ensime
 .ensime.bak
