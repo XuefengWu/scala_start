@@ -12,21 +12,23 @@ import java.io.{FileWriter, File}
 
 object Schema {
 
-  def gen(model:String) = """
-#%s schema
+  def gen(model:String,fields:List[(String,String)]) = { 
+  val columns = fields.map(f => "%s varchar(255)".format(f._1)).mkString(",\n\t")
+    
+"""#%s schema
 
 # --- !Ups
 
 CREATE SEQUENCE %s_id_seq;
 CREATE TABLE %s (
     id integer NOT NULL DEFAULT nextval('%s_id_seq'),
-    title varchar(255)
+    %s
 );
 
 
 # --- !Downs
 DROP TABLE %s;
 DROP SEQUENCE %s_id_seq;
-    """.format(model.capitalize,model,model,model,model,model)
-
+    """.format(model.capitalize,model,model,model,columns,model,model)
+  }
 }

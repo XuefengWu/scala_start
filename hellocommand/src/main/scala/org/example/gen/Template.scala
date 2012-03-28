@@ -13,7 +13,7 @@ import java.io.{File, FileWriter}
 object Template {
 
 
-  def genList(model:String)={
+  def genList(model:String,fields:List[(String,String)])={
     """
 @(%ss:List[%s], %sForm: Form[%s])
 
@@ -51,7 +51,7 @@ object Template {
 
   }
 
-  def genEdit(model:String) ={
+  def genEdit(model:String,fields:List[(String,String)]) ={
     """
 @(id: Long, %sForm: Form[%s])
 
@@ -86,7 +86,7 @@ object Template {
       model,model.capitalize,model.capitalize,model)
 
   }
-  def genCreate(model:String)= {
+  def genCreate(model:String,fields:List[(String,String)])= {
     """
 @(%sForm: Form[%s])
 

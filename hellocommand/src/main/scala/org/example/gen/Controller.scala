@@ -11,12 +11,12 @@ import java.io.{File, FileWriter}
  */
 
 object Controller {
-  def gen(model: String)={
+  def gen(model: String,fields:List[(String, String)])={
 
     val result = new StringBuffer()
     result.append(genControllerHead(model))
 
-    result.append(genForm(model))
+    result.append(genForm(model,fields))
 
     result.append(genActions(model))
 
@@ -26,15 +26,16 @@ object Controller {
 
   def genControllerEnd = "}"
 
-  def genForm(model: String)={
+  def genForm(model: String,fields:List[(String, String)])={
+    val mapping = fields.map(f => "\"%s\" -> nonEmptyText".format(f._1)).mkString(",\n\t")
 
     """val %sForm = Form(
     mapping(
       "id" -> ignored(NotAssigned:Pk[Long]),
-      "title" -> nonEmptyText
+      %s
     )(%s.apply)(%s.unapply)
   )
-    """.format(model, model.capitalize, model.capitalize)
+    """.format(model,mapping, model.capitalize, model.capitalize)
   }
 
   def genControllerHead(model:String) = """

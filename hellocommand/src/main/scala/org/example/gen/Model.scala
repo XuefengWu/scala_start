@@ -13,12 +13,12 @@ import java.io.FileWriter
 object Model {
 
 
-  def gen(model:String)= {
+  def gen(model:String,fields:List[(String, String)])= {
     //create [models].scala
     val result = new StringBuffer()
     result.append(genHead)
-    result.append(genCaseClass(model))
-    result.append(genService(model))
+    result.append(genCaseClass(model,fields))
+    result.append(genService(model,fields))
     result.toString
   }
   private  def genHead = {
@@ -34,40 +34,72 @@ import play.api.Play.current
     """
   }
 
-  private def genCaseClass(m:String)={
+  def genCaseClass(m:String,fields:List[(String, String)])={
     //create case class
-    """
-    case class %s(id:Pk[Long], title:String)
-    """.format(m.capitalize)
+
+    """case class %s(id:Pk[Long], %s)
+    """.format(m.capitalize,fields.map(f => f._1+":"+f._2).mkString(","))
   }
 
-  private def genService(m:String)= {
-    def genObjectHead = "object %s {\n".format(m.capitalize)
+  def genSqlParser(m:String,fields:List[(String,String)]) = {
+    val getParser = fields.map{ f =>
+       "get[Option[%s]](\"%s.%s\")".format(f._2,m,f._1)
+    }.mkString(" ~\n\t")
+    val mapCase = "case id~%s => %s(id, %s)".format(fields.map(_._1).mkString("~"),m.capitalize,fields.map(_._1).mkString(","))
+    """  val %s = {
+      get[Pk[Long]]("%s.id") ~
+      %s map {
+        %s
+      }
+    }
+    """.format(m,m,getParser,mapCase)
+  }
 
-    def genSqlPareser = """
-        val %s = {
-        get[Pk[Long]]("id") ~
-        get[String]("title") map {
-          case id~title => %s(id,title)
+  def genCreate(m:String,fields:List[(String,String)]) = {
+    val fieldsName = fields.map(_._1)
+
+    val seq = "(select next value for %s_id_seq)".format(m)
+    val columns =fieldsName.map(m+"."+_).mkString(",")
+    val setColumns = fieldsName.map("{"+_+"}").mkString(",")
+    val mapOn = fieldsName.map(f => "'%s -> v.%s".format(f,f)).mkString(",\n\t")
+
+    """    def create(v:%s) {
+      DB.withConnection { implicit connection =>
+        SQL("insert into %s (%s.id,%s) values (%s,%s)").on(
+        %s
+        ).executeUpdate()
+      }
+    }
+    """.format(m.capitalize,m,m,columns,seq,setColumns,mapOn)
+  }
+
+  def genUpdate(m:String,fields:List[(String,String)]) = {
+    val fieldsName = fields.map(_._1)
+    val updateSet = fieldsName.map(f => "%s = {%s}".format(f,f)).mkString(",")
+
+    val mapOn = fieldsName.map(f => "'%s -> v.%s".format(f,f)).mkString(",\n\t")
+
+    """   def update(id: Long, v: %s) = {
+        DB.withConnection { implicit connection =>
+          SQL(
+            "update %s set %s where id = {id}"
+          ).on(
+            'id -> id,
+            %s
+          ).executeUpdate()
         }
       }
-      """.format(m,m.capitalize)
+    """.format(m.capitalize,m,updateSet,mapOn)
+  }
+
+  private def genService(m:String,fields:List[(String,String)])= {
+    def genObjectHead = "object %s {\n".format(m.capitalize)
 
     def genList = """
       def list(): List[%s] = DB.withConnection{ implicit c =>
           SQL("select * from %s").as(%s *)
         }
       """.format(m.capitalize,m,m)
-
-    def genCreate = """
-        def create(u:%s) {
-        DB.withConnection { implicit c =>
-          SQL("insert into %s (title) values ({title})").on(
-          'title -> u.title
-          ).executeUpdate()
-        }
-      }
-      """.format(m.capitalize,m)
 
     def genFindById = """
   def findById(id: Long) =  DB.withConnection { implicit c =>
@@ -85,19 +117,7 @@ import play.api.Play.current
       }
       """.format(m)
 
-    def genUpdate = """
-          def update(id: Long, u: User) = {
 
-        DB.withConnection { implicit connection =>
-          SQL(
-            "update user set title = {title} where id = {id}"
-          ).on(
-            'id -> id,
-            'title -> u.title
-          ).executeUpdate()
-        }
-      }
-    """.format(m)
 
     def genObjectEnd = "}"
 
@@ -105,17 +125,17 @@ import play.api.Play.current
 
     result.append(genObjectHead)
     //genSqlPareser
-    result.append(genSqlPareser)
+    result.append(genSqlParser(m,fields))
     //genMethods
     result.append(genList)
 
-    result.append(genCreate)
+    result.append(genCreate(m,fields))
 
     result.append(genFindById)
 
     result.append(genDelete)
 
-    result.append(genUpdate)
+    result.append(genUpdate(m,fields))
 
     result.append(genObjectEnd)
 

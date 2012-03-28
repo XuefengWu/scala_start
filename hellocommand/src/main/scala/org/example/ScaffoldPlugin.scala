@@ -51,15 +51,15 @@ object ScaffoldPlugin extends Plugin {
 
 
     val outList:FileWriter = new FileWriter(tDirPath+"/list.scala.html")
-    outList.write(Template.genList(model))
+    outList.write(Template.genList(model,Nil))
     outList.close()
 
     val outEdit:FileWriter = new FileWriter(tDirPath+"/edit.scala.html")
-    outEdit.write(Template.genEdit(model))
+    outEdit.write(Template.genEdit(model,Nil))
     outEdit.close()
 
     val outCreate:FileWriter = new FileWriter(tDirPath+"/create.scala.html")
-    outCreate.write(Template.genCreate(model))
+    outCreate.write(Template.genCreate(model,Nil))
     outCreate.close()
   }
 
@@ -82,13 +82,13 @@ object ScaffoldPlugin extends Plugin {
       System.out.print(model + " is alread exists")
 
     implicit val out: FileWriter = new FileWriter(cFile) 
-    out.write(Controller.gen(model)) 
+    out.write(Controller.gen(model,Nil))
     out.close()
   }
   
   private def genModel(model:String)(implicit baseDir:String){
     val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
-    out.write(Model.gen(model))
+    out.write(Model.gen(model,Nil))
     out.close()
   }
   
@@ -102,7 +102,7 @@ object ScaffoldPlugin extends Plugin {
     val evNum = evDir.list().map(_.dropRight(4).toInt).max + 1
     val sFile = new File(baseDir+"/conf/evolutions/default/%d.sql".format(evNum))
     val out:FileWriter = new FileWriter(sFile)
-    out.write(Schema.gen(model))
+    out.write(Schema.gen(model,Nil))
     out.close()
   }
 }
