@@ -1,6 +1,8 @@
 package org.example.gen
 
 import org.specs2.mutable._
+import java.io.File
+
 /**
  * Created by IntelliJ IDEA.
  * User: 19002850
@@ -21,21 +23,20 @@ class TemplateSpec  extends SpecificationWithJUnit  {
       hello.render must contain ("world")
     }
     "work with file " in {
-      val g = new STGroupFile("list.stg")
-      val st:ST = g.getInstanceOf("decl")
-      st.add("type", "int")
-      st.add("name", "x")
-      st.add("value", 0)
+      val lines = scala.io.Source.fromFile("src/main/resource/list.html").mkString
+      println(lines)
+      val st = new ST(lines,'$','$')
+      st.add("model", model)
       val result = st.render()
       println(result)
-      result must contain ("int")
+      result must contain (model)
     }
   }
   "gen Template " should {
     "start with  name" in {
       val res = Template.genList(model,fields)
       println(res)
-      res must contain("name")
+      res must contain(model)
     }
 
   }
