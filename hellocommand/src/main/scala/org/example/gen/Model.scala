@@ -29,7 +29,7 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
-
+import java.util.Date
 
     """
   }
@@ -43,7 +43,7 @@ import play.api.Play.current
 
   def genSqlParser(m:String,fields:List[(String,String)]) = {
     val getParser = fields.map{ f =>
-       "get[Option[%s]](\"%s.%s\")".format(f._2,m,f._1)
+       "get[%s](\"%s.%s\")".format(f._2,m,f._1)
     }.mkString(" ~\n\t")
     val mapCase = "case id~%s => %s(id, %s)".format(fields.map(_._1).mkString("~"),m.capitalize,fields.map(_._1).mkString(","))
     """  val %s = {
@@ -59,18 +59,18 @@ import play.api.Play.current
     val fieldsName = fields.map(_._1)
 
     val seq = "(select next value for %s_id_seq)".format(m)
-    val columns =fieldsName.map(m+"."+_).mkString(",")
+    val columns =fieldsName.mkString(",")
     val setColumns = fieldsName.map("{"+_+"}").mkString(",")
     val mapOn = fieldsName.map(f => "'%s -> v.%s".format(f,f)).mkString(",\n\t")
 
     """    def create(v:%s) {
       DB.withConnection { implicit connection =>
-        SQL("insert into %s (%s.id,%s) values (%s,%s)").on(
+        SQL("insert into %s (id,%s) values (%s,%s)").on(
         %s
         ).executeUpdate()
       }
     }
-    """.format(m.capitalize,m,m,columns,seq,setColumns,mapOn)
+    """.format(m.capitalize,m,columns,seq,setColumns,mapOn)
   }
 
   def genUpdate(m:String,fields:List[(String,String)]) = {
@@ -102,10 +102,11 @@ import play.api.Play.current
       """.format(m.capitalize,m,m)
 
     def genFindById = """
-  def findById(id: Long) =  DB.withConnection { implicit c =>
+  def findById(id: Long): Option[%s] = { DB.withConnection { implicit c =>
       SQL("select * from %s where  id = {id}").on('id -> id).as(%s.singleOpt)
+    }
   }
-    """.format(m,m)
+    """.format(m.capitalize,m,m)
 
     def genDelete = """
       def delete(id:Long){

@@ -31,16 +31,17 @@ object ScaffoldPlugin extends Plugin {
       if(mFile.exists()){
         System.out.print(model + " is alread exists.\n do nothing.")
       }else{
-        genModel(m)
-        genSchema(m)
-        genController(m)
-        genTemplate(m)
-        genRouters(m)
+        val fields = List(("name","String"),("lastUpdated","Date"))
+        genModel(m,fields)
+        genSchema(m,fields)
+        genController(m,fields)
+        genTemplate(m,fields)
+        genRouters(m,fields)
       }
       state
     }
 
-  private def genTemplate(model:String)(implicit baseDir:String) {
+  private def genTemplate(model:String,fields:List[(String, String)])(implicit baseDir:String) {
 
     //check app/view/[model] folder
     val tDirPath = "%s/app/views/%s".format(baseDir,model)
@@ -51,25 +52,25 @@ object ScaffoldPlugin extends Plugin {
 
 
     val outList:FileWriter = new FileWriter(tDirPath+"/list.scala.html")
-    outList.write(Template.genList(model,Nil))
+    outList.write(Template.genList(model,fields))
     outList.close()
 
     val outEdit:FileWriter = new FileWriter(tDirPath+"/edit.scala.html")
-    outEdit.write(Template.genEdit(model,Nil))
+    outEdit.write(Template.genEdit(model,fields))
     outEdit.close()
 
     val outCreate:FileWriter = new FileWriter(tDirPath+"/create.scala.html")
-    outCreate.write(Template.genCreate(model,Nil))
+    outCreate.write(Template.genCreate(model,fields))
     outCreate.close()
   }
 
-  private def genRouters(model:String)(implicit baseDir:String){
+  private def genRouters(model:String,fields:List[(String, String)])(implicit baseDir:String){
     val out = new FileWriter(baseDir+"/conf/routes",true)
     out.write(Routers.gen(model))
     out.close()
   }
 
-  private def genController(model:String)(implicit baseDir:String){
+  private def genController(model:String,fields:List[(String, String)])(implicit baseDir:String){
     
     //check app/controllers folder
     val evDir = new File(baseDir + "/app/controllers")
@@ -82,17 +83,17 @@ object ScaffoldPlugin extends Plugin {
       System.out.print(model + " is alread exists")
 
     implicit val out: FileWriter = new FileWriter(cFile) 
-    out.write(Controller.gen(model,Nil))
+    out.write(Controller.gen(model,fields))
     out.close()
   }
   
-  private def genModel(model:String)(implicit baseDir:String){
+  private def genModel(model:String,fields:List[(String, String)])(implicit baseDir:String){
     val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
-    out.write(Model.gen(model,Nil))
+    out.write(Model.gen(model,fields))
     out.close()
   }
   
-  private def genSchema(model:String)(implicit baseDir:String) {
+  private def genSchema(model:String,fields:List[(String, String)])(implicit baseDir:String) {
     val evDir = new File(baseDir+"/conf/evolutions/default")
 
     if(!evDir.exists())
@@ -102,7 +103,7 @@ object ScaffoldPlugin extends Plugin {
     val evNum = evDir.list().map(_.dropRight(4).toInt).max + 1
     val sFile = new File(baseDir+"/conf/evolutions/default/%d.sql".format(evNum))
     val out:FileWriter = new FileWriter(sFile)
-    out.write(Schema.gen(model,Nil))
+    out.write(Schema.gen(model,fields))
     out.close()
   }
 }

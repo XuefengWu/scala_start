@@ -1,5 +1,8 @@
 ﻿lib
 lib/*
+.idea
+.idea_modules
+target
 playworld/lib
 playworld/tmp
 playworld/eclipse

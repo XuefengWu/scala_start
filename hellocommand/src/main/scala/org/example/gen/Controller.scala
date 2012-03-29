@@ -27,7 +27,13 @@ object Controller {
   def genControllerEnd = "}"
 
   def genForm(model: String,fields:List[(String, String)])={
-    val mapping = fields.map(f => "\"%s\" -> nonEmptyText".format(f._1)).mkString(",\n\t")
+    val mapping = fields.map{f => 
+      f._2 match {
+        case "Date" => "\"%s\" -> date(\"yyyy-MM-dd\")".format(f._1)
+        case _ => "\"%s\" -> nonEmptyText".format(f._1)
+      }
+
+    }.mkString(",\n\t")
 
     """val %sForm = Form(
     mapping(
@@ -95,7 +101,7 @@ object %ss extends Controller {
         formWithErrors => BadRequest(views.html.%s.edit(id, formWithErrors)),
         v => {
           %s.update(id, v)
-          Redirect(routes.%ss.list).flashing("success" -> "%%s has been updated".format(v.title))
+          Redirect(routes.%ss.list).flashing("success" -> "%%s has been updated".format(v))
         }
       )
     }

@@ -2,6 +2,7 @@ package org.example.gen
 
 import org.specs2.mutable._
 import java.io.File
+import org.example.ScaffoldPlugin
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,27 +18,40 @@ class TemplateSpec  extends SpecificationWithJUnit  {
   "hello StringTemplate " should {
     import org.stringtemplate.v4._
     "work with string" in {
-
       val hello = new ST("Hello,<name>")
       hello.add("name","world")
       hello.render must contain ("world")
     }
-    "work with file " in {
-      val lines = scala.io.Source.fromFile("src/main/resource/template/list.html").mkString
-      println(lines)
-      val st = new ST(lines,'$','$')
-      st.add("model", model)
-      val result = st.render()
-      println(result)
-      result must contain (model)
-    }
+
   }
-  "gen Template " should {
-    "start with  name" in {
+  "gen list Template " should {
+    "with model" in {
       val res = Template.genList(model,fields)
       println(res)
+      fields.foreach(f => res must contain (f._1))
+      res must contain(model)
+    }
+  }
+
+    "gen create Template " should {
+      "with model" in {
+        val res = Template.genCreate(model,fields)
+        println(res)
+        fields.foreach(f => res must contain (f._1))
+        res must contain(model)
+      }
+
+  }
+
+  "gen edit Template " should {
+    "with model" in {
+      val res = Template.genEdit(model,fields)
+      println(res)
+      fields.foreach(f => res must contain (f._1))
       res must contain(model)
     }
 
   }
+
+
 }

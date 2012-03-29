@@ -1,6 +1,7 @@
 package org.example.gen
 
 import java.io.{File, FileWriter}
+import org.stringtemplate.v4.ST
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,108 +15,56 @@ object Template {
 
 
   def genList(model:String,fields:List[(String,String)])={
-    """
-@(%ss:List[%s], %sForm: Form[%s])
+    val heads = fields.map(f => "<th>%s</th>".format(f._1.capitalize)).mkString("\n\t\t")
+    val rows = fields.map{ f =>
+      val rowST = new ST("<td><a href=\"@routes.$MM$s.edit(v.id.get)\">@v.$f$</a></td>",'$','$')
+      rowST.add("MM",model.capitalize)
+      rowST.add("f",f._1)
+      rowST.render()
+    }.mkString("\n\t\t")
 
-@import helper._
-
-@main("%s List") {
-
-  <h1>@%ss.size %s(s)</h1>
-<table class="zebra-striped">
-  <thead>
-  <tr>
-      <th>Title</th>
-      <th>Action</th>
-  </tr>
-  </thead>
-  <tbody>
-      @%ss.map { v =>
-      <tr>
-       <td><a href="@routes.%ss.edit(v.id.get)">@v.title</a></td>
-        <td>@form(routes.%ss.delete(v.id.get)){
-                  <input type="submit" value="Delete">
-              }
-        </td>
-      </tr>
-      }
-  </tbody>
-  </table>
-
-  <h2>Add a new %s</h2>
-  <a class="btn success" id="add" href="@routes.%ss.create()">Add a new %s</a>
-}
-    """.format(model,model.capitalize,model,model.capitalize,model.capitalize,
-      model, model,model,model.capitalize,model.capitalize,
-      model.capitalize,model.capitalize,model)
-
+    val ins = getClass.getResourceAsStream("/template/list.html")
+    val lines = scala.io.Source.fromInputStream(ins).mkString
+    val st = new ST(lines,'$','$')
+    st.add("m", model)
+    st.add("MM", model.capitalize)
+    st.add("heads", heads)
+    st.add("rows", rows)
+    st.render()
   }
 
   def genEdit(model:String,fields:List[(String,String)]) ={
-    """
-@(id: Long, %sForm: Form[%s])
+    val inputFields = fields.map{ f =>
+      val inputFieldST = new ST("@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")")
+      inputFieldST.add("m",model)
+      inputFieldST.add("f",f._1)
+      inputFieldST.render()
+    }.mkString("\n\t")
 
-@import helper._
-
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
-
-@main("edit") {
-
-  <h1>Edit %s</h1>
-
-  @form(routes.%ss.update(id)) {
-
-      <fieldset>
-         @inputText(%sForm("title"))
-      </fieldset>
-
-      <div class="actions">
-          <input type="submit" value="Save this %s" class="btn primary"> or
-          <a href="@routes.%ss.list()" class="btn">Cancel</a>
-      </div>
-
-  }
-
-  @form(routes.%ss.delete(id), 'class -> "topRight") {
-      <input type="submit" value="Delete this %s" class="btn danger">
-  }
-
-}
-    """.format(model,model.capitalize,
-      model,model.capitalize,model,
-      model,model.capitalize,model.capitalize,model)
+    val ins = getClass.getResourceAsStream("/template/edit.html")
+    val lines = scala.io.Source.fromInputStream(ins).mkString
+    val st = new ST(lines,'$','$')
+    st.add("m", model)
+    st.add("MM", model.capitalize)
+    st.add("inputFields", inputFields)
+    st.render()
 
   }
   def genCreate(model:String,fields:List[(String,String)])= {
-    """
-@(%sForm: Form[%s])
+    val inputFields = fields.map{ f =>
+      val inputFieldST = new ST("@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")")
+      inputFieldST.add("m",model)
+      inputFieldST.add("f",f._1)
+      inputFieldST.render()
+    }.mkString("\n\t")
 
-@import helper._
-
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
-
-@main("create") {
-
-  <h1>Add a %s</h1>
-
-  @form(routes.%ss.save()) {
-
-      <fieldset>
-          @inputText(%sForm("title"), '_label -> "%s name")
-      </fieldset>
-
-      <div class="actions">
-          <input type="submit" value="Create this %s" class="btn primary"> or
-          <a href="@routes.%ss.list()" class="btn">Cancel</a>
-      </div>
-
-  }
-
-}
-    """.format(model,model.capitalize,
-      model,model.capitalize,model,model,
-      model,model.capitalize)
-
+    val ins = getClass.getResourceAsStream("/template/create.html")
+    val lines = scala.io.Source.fromInputStream(ins).mkString
+    val st = new ST(lines,'$','$')
+    st.add("m", model)
+    st.add("MM", model.capitalize)
+    st.add("inputFields", inputFields)
+    st.render()
   }
 
 }

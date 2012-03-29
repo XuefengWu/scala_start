@@ -13,7 +13,13 @@ import java.io.{FileWriter, File}
 object Schema {
 
   def gen(model:String,fields:List[(String,String)]) = { 
-  val columns = fields.map(f => "%s varchar(255)".format(f._1)).mkString(",\n\t")
+  val columns = fields.map{f => 
+    f._2 match {
+      case "Date" => "%s timestamp".format(f._1)
+      case _ => "%s varchar(255)".format(f._1)
+    }
+
+  }.mkString(",\n\t")
     
 """#%s schema
 
