@@ -43,8 +43,6 @@ object ScaffoldPlugin extends Plugin {
       if(mFile.exists()){
         System.out.print(model + " is alread exists.\n do nothing.")
       }else{
-
-
         genModel(m,fields)
         genSchema(m,fields)
         genController(m,fields)
@@ -119,4 +117,26 @@ object ScaffoldPlugin extends Plugin {
     out.write(Schema.gen(model,fields))
     out.close()
   }
+
+
+  def extraPureType(fType:String):String = {
+    val OT = """Option\[([a-zA-Z]*)\]""".r
+    val RT = """Required\[([a-zA-Z]*)\]""".r
+    fType match {
+      case OT(t) => t
+      case RT(t) => t
+      case t => t
+    }
+  }
+
+  def extraOptionType(fType:String):String = {
+    val OT = """Option\[([a-zA-Z]*)\]""".r
+    val RT = """Required\[([a-zA-Z]*)\]""".r
+    fType match {
+      case RT(t) => t
+      case OT(t) => "Option[%s]".format(t)
+      case t => "Option[%s]".format(t)
+    }
+  }
+
 }

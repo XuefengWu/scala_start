@@ -2,6 +2,7 @@ package org.example.gen
 
 import java.io.{File, FileWriter}
 import org.stringtemplate.v4.ST
+import org.example.ScaffoldPlugin
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,13 +34,21 @@ object Template {
     st.render()
   }
 
-  def genEdit(model:String,fields:Seq[(String, String)]) ={
-    val inputFields = fields.map{ f =>
-      val inputFieldST = new ST("@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")")
+  private def makeFormField(model:String,fields:Seq[(String, String)]) = {
+    fields.map{ f =>
+      val inputHtml:String = ScaffoldPlugin.extraPureType(f._2) match {
+        case "Boolean" => "@checkbox(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")"
+        case "Date" => "@inputDate(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")"
+        case _ => "@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")"
+      }
+      val inputFieldST = new ST(inputHtml)
       inputFieldST.add("m",model)
       inputFieldST.add("f",f._1)
       inputFieldST.render()
     }.mkString("\n\t")
+  }
+  def genEdit(model:String,fields:Seq[(String, String)]) ={
+    val inputFields = makeFormField(model,fields)
 
     val ins = getClass.getResourceAsStream("/template/edit.html")
     val lines = scala.io.Source.fromInputStream(ins).mkString
@@ -51,12 +60,7 @@ object Template {
 
   }
   def genCreate(model:String,fields:Seq[(String, String)])= {
-    val inputFields = fields.map{ f =>
-      val inputFieldST = new ST("@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")")
-      inputFieldST.add("m",model)
-      inputFieldST.add("f",f._1)
-      inputFieldST.render()
-    }.mkString("\n\t")
+    val inputFields = makeFormField(model,fields)
 
     val ins = getClass.getResourceAsStream("/template/create.html")
     val lines = scala.io.Source.fromInputStream(ins).mkString

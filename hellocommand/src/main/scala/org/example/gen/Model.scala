@@ -1,6 +1,7 @@
 package org.example.gen
 
 import java.io.FileWriter
+import org.example.ScaffoldPlugin
 
 /**
  * Created by IntelliJ IDEA.
@@ -12,38 +13,57 @@ import java.io.FileWriter
 
 object Model {
 
-
   def gen(model:String,fields:Seq[(String, String)])= {
     //create [models].scala
+
+
     val result = new StringBuffer()
-    result.append(genHead)
+    result.append(genHead(fields))
     result.append(genCaseClass(model,fields))
     result.append(genService(model,fields))
     result.toString
   }
-  private  def genHead = {
-    """
-package models
+  private  def genHead(fields:Seq[(String, String)]) = {
+
+    val importTypes = fields.map{ f =>
+      ScaffoldPlugin.extraPureType(f._2) match {
+        case "String" => ""
+        case "Long" => ""
+        case "Integer" => ""
+        case "Boolean" => ""
+        case "BigInteger" => "import java.math.BigInteger"
+        case "Float" => ""
+        case "Double" => ""
+        case "BigDecimal" => "import java.math.BigDecimal"
+        case "Time" => "import java.sql.Time"
+        case "Timestamp" => "import java.sql.Timestamp"
+        case "Date" => "import java.util.Date"
+        case _ => ""
+      }
+    }.toSet.mkString("\n")
+
+    val head =
+    """package models
 
 import anorm._
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
-import java.util.Date
+%s
 
-    """
+    """.format(importTypes)
+    head
   }
 
   def genCaseClass(m:String,fields:Seq[(String, String)])={
     //create case class
-
     """case class %s(id:Pk[Long], %s)
-    """.format(m.capitalize,fields.map(f => f._1+":"+f._2).mkString(","))
+    """.format(m.capitalize,fields.map(f => f._1+":"+ScaffoldPlugin.extraOptionType(f._2)).mkString(","))
   }
 
   def genSqlParser(m:String,fields:Seq[(String,String)]) = {
     val getParser = fields.map{ f =>
-       "get[%s](\"%s.%s\")".format(f._2,m,f._1)
+       "get[%s](\"%s.%s\")".format(ScaffoldPlugin.extraOptionType(f._2),m,f._1)
     }.mkString(" ~\n\t")
     val mapCase = "case id~%s => %s(id, %s)".format(fields.map(_._1).mkString("~"),m.capitalize,fields.map(_._1).mkString(","))
     """  val %s = {
