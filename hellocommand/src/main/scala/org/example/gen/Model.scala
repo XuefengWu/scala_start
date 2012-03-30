@@ -13,7 +13,7 @@ import java.io.FileWriter
 object Model {
 
 
-  def gen(model:String,fields:List[(String, String)])= {
+  def gen(model:String,fields:Seq[(String, String)])= {
     //create [models].scala
     val result = new StringBuffer()
     result.append(genHead)
@@ -34,14 +34,14 @@ import java.util.Date
     """
   }
 
-  def genCaseClass(m:String,fields:List[(String, String)])={
+  def genCaseClass(m:String,fields:Seq[(String, String)])={
     //create case class
 
     """case class %s(id:Pk[Long], %s)
     """.format(m.capitalize,fields.map(f => f._1+":"+f._2).mkString(","))
   }
 
-  def genSqlParser(m:String,fields:List[(String,String)]) = {
+  def genSqlParser(m:String,fields:Seq[(String,String)]) = {
     val getParser = fields.map{ f =>
        "get[%s](\"%s.%s\")".format(f._2,m,f._1)
     }.mkString(" ~\n\t")
@@ -55,7 +55,7 @@ import java.util.Date
     """.format(m,m,getParser,mapCase)
   }
 
-  def genCreate(m:String,fields:List[(String,String)]) = {
+  def genCreate(m:String,fields:Seq[(String,String)]) = {
     val fieldsName = fields.map(_._1)
 
     val seq = "(select next value for %s_id_seq)".format(m)
@@ -73,7 +73,7 @@ import java.util.Date
     """.format(m.capitalize,m,columns,seq,setColumns,mapOn)
   }
 
-  def genUpdate(m:String,fields:List[(String,String)]) = {
+  def genUpdate(m:String,fields:Seq[(String,String)]) = {
     val fieldsName = fields.map(_._1)
     val updateSet = fieldsName.map(f => "%s = {%s}".format(f,f)).mkString(",")
 
@@ -92,7 +92,7 @@ import java.util.Date
     """.format(m.capitalize,m,updateSet,mapOn)
   }
 
-  private def genService(m:String,fields:List[(String,String)])= {
+  private def genService(m:String,fields:Seq[(String,String)])= {
     def genObjectHead = "object %s {\n".format(m.capitalize)
 
     def genList = """

@@ -14,7 +14,7 @@ import org.stringtemplate.v4.ST
 object Template {
 
 
-  def genList(model:String,fields:List[(String,String)])={
+  def genList(model:String,fields:Seq[(String, String)])={
     val heads = fields.map(f => "<th>%s</th>".format(f._1.capitalize)).mkString("\n\t\t")
     val rows = fields.map{ f =>
       val rowST = new ST("<td><a href=\"@routes.$MM$s.edit(v.id.get)\">@v.$f$</a></td>",'$','$')
@@ -33,7 +33,7 @@ object Template {
     st.render()
   }
 
-  def genEdit(model:String,fields:List[(String,String)]) ={
+  def genEdit(model:String,fields:Seq[(String, String)]) ={
     val inputFields = fields.map{ f =>
       val inputFieldST = new ST("@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")")
       inputFieldST.add("m",model)
@@ -50,7 +50,7 @@ object Template {
     st.render()
 
   }
-  def genCreate(model:String,fields:List[(String,String)])= {
+  def genCreate(model:String,fields:Seq[(String, String)])= {
     val inputFields = fields.map{ f =>
       val inputFieldST = new ST("@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")")
       inputFieldST.add("m",model)

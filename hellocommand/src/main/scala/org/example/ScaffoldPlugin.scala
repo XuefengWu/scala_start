@@ -19,19 +19,32 @@ object ScaffoldPlugin extends Plugin {
   override lazy val settings = Seq(commands += genCommand)
 
   lazy val genCommand =
-    Command.single("gen") { (state: State, model: String) =>
+    Command.args("gen","<model> <fields=fieldName1:fieldType~fieldName2:fieldType>") { (state,args) =>
       import state._
 
       implicit val baseDir:String = configuration.baseDirectory.getPath
       print("Thank you very much!\n")
       println("base directory: " + baseDir)
-
+      val model = args.head
+      val fieldArg = args.tail.filter(_.contains("fields")).head
+      println("fieldArg: "+fieldArg)
+      val fieldsValue = fieldArg.split("=").last
+      println("fieldsValue: "+fieldsValue)
+      val fields = fieldsValue.split("~").map{ f =>
+         println("field: "+f)
+         val ft = f.split(":")
+        (ft.head,ft.last)
+      }
       val m = model.toLowerCase
+      
+      //val fields = List(("name","String"),("lastUpdated","Date"))
+      //List(("name","String"),("address","Option[String]"),("phone","Required[String]"))
       val mFile = new File(baseDir+"/app/models/"+m.capitalize+".scala")
       if(mFile.exists()){
         System.out.print(model + " is alread exists.\n do nothing.")
       }else{
-        val fields = List(("name","String"),("lastUpdated","Date"))
+
+
         genModel(m,fields)
         genSchema(m,fields)
         genController(m,fields)
@@ -41,7 +54,7 @@ object ScaffoldPlugin extends Plugin {
       state
     }
 
-  private def genTemplate(model:String,fields:List[(String, String)])(implicit baseDir:String) {
+  private def genTemplate(model:String,fields:Seq[(String, String)])(implicit baseDir:String) {
 
     //check app/view/[model] folder
     val tDirPath = "%s/app/views/%s".format(baseDir,model)
@@ -64,13 +77,13 @@ object ScaffoldPlugin extends Plugin {
     outCreate.close()
   }
 
-  private def genRouters(model:String,fields:List[(String, String)])(implicit baseDir:String){
+  private def genRouters(model:String,fields:Seq[(String, String)])(implicit baseDir:String){
     val out = new FileWriter(baseDir+"/conf/routes",true)
     out.write(Routers.gen(model))
     out.close()
   }
 
-  private def genController(model:String,fields:List[(String, String)])(implicit baseDir:String){
+  private def genController(model:String,fields:Seq[(String, String)])(implicit baseDir:String){
     
     //check app/controllers folder
     val evDir = new File(baseDir + "/app/controllers")
@@ -87,13 +100,13 @@ object ScaffoldPlugin extends Plugin {
     out.close()
   }
   
-  private def genModel(model:String,fields:List[(String, String)])(implicit baseDir:String){
+  private def genModel(model:String,fields:Seq[(String, String)])(implicit baseDir:String){
     val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
     out.write(Model.gen(model,fields))
     out.close()
   }
   
-  private def genSchema(model:String,fields:List[(String, String)])(implicit baseDir:String) {
+  private def genSchema(model:String,fields:Seq[(String, String)])(implicit baseDir:String) {
     val evDir = new File(baseDir+"/conf/evolutions/default")
 
     if(!evDir.exists())

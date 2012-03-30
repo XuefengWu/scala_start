@@ -12,7 +12,7 @@ import java.io.{FileWriter, File}
 
 object Schema {
 
-  def gen(model:String,fields:List[(String,String)]) = { 
+  def gen(model:String,fields:Seq[(String, String)]) = { 
   val columns = fields.map{f => 
     f._2 match {
       case "Date" => "%s timestamp".format(f._1)

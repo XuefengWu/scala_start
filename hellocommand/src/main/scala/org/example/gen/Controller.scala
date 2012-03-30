@@ -11,7 +11,7 @@ import java.io.{File, FileWriter}
  */
 
 object Controller {
-  def gen(model: String,fields:List[(String, String)])={
+  def gen(model: String,fields:Seq[(String, String)])={
 
     val result = new StringBuffer()
     result.append(genControllerHead(model))
@@ -26,7 +26,7 @@ object Controller {
 
   def genControllerEnd = "}"
 
-  def genForm(model: String,fields:List[(String, String)])={
+  def genForm(model: String,fields:Seq[(String, String)])={
     val mapping = fields.map{f => 
       f._2 match {
         case "Date" => "\"%s\" -> date(\"yyyy-MM-dd\")".format(f._1)
