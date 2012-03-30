@@ -10,6 +10,7 @@ object MyPlugin extends Plugin
     Command.single("hello") { (state: State, name: String) =>
       println("Hi, " + name)
       println("How are you?")
+      println()
       state
     }
 

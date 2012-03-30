@@ -35,13 +35,16 @@ object ScaffoldPlugin extends Plugin {
          val ft = f.split(":")
         (ft.head,ft.last)
       }
+      
       val m = model.toLowerCase
       
       //val fields = List(("name","String"),("lastUpdated","Date"))
       //List(("name","String"),("address","Option[String]"),("phone","Required[String]"))
       val mFile = new File(baseDir+"/app/models/"+m.capitalize+".scala")
-      if(mFile.exists()){
-        System.out.print(model + " is alread exists.\n do nothing.")
+      val invalidateFieldTypes = invalidateFieldType(fields.map(_._2))
+      if(mFile.exists() || invalidateFieldTypes.size > 0){
+        System.out.println(model + " is alread exists.\n do nothing.")
+        System.out.println("or field Type is not validate: " + invalidateFieldTypes.mkString(","))
       }else{
         genModel(m,fields)
         genSchema(m,fields)
@@ -51,6 +54,13 @@ object ScaffoldPlugin extends Plugin {
       }
       state
     }
+
+  private def invalidateFieldType(fTypes:Seq[String]):Seq[String] = {
+     val javaType = List("String","Long","Integer","Boolean","BigInteger","Float","Double","BigDecimal","Time","Timestamp","Date")
+     val modelTypes = new File("app/models").list().map(_.dropRight(6).toLowerCase)
+
+    fTypes.filterNot(ft => javaType.contains(ft) || modelTypes.contains(ft.toLowerCase))
+  }
 
   private def genTemplate(model:String,fields:Seq[(String, String)])(implicit baseDir:String) {
 

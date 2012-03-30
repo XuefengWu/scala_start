@@ -61,12 +61,13 @@ CREATE SEQUENCE %s_id_seq;
 CREATE TABLE %s (
     id integer NOT NULL DEFAULT nextval('%s_id_seq'),
     %s
+    ,constraint pk_%s primary key (id))
 );
 
 
 # --- !Downs
 DROP TABLE %s;
 DROP SEQUENCE %s_id_seq;
-    """.format(model.capitalize,model,model,model,columns,model,model)
+    """.format(model.capitalize,model,model,model,columns,model,model,model)
   }
 }
