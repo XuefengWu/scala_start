@@ -13,16 +13,21 @@ import org.example.ScaffoldPlugin
 
 object Model {
 
+  import ScaffoldPlugin.{hasReferenceModel,extraPureType,tableField,modelField}
+
   def gen(model:String,fields:Seq[(String, String)])= {
     //create [models].scala
 
 
     val result = new StringBuffer()
     result.append(genHead(fields))
+    result.append(genPageHead)
     result.append(genCaseClass(model,fields))
     result.append(genService(model,fields))
     result.toString
   }
+
+
   private  def genHead(fields:Seq[(String, String)]) = {
 
     val importTypes = fields.map{ f =>
@@ -54,11 +59,20 @@ import play.api.Play.current
     """.format(importTypes)
     head
   }
-
+  private def genPageHead = {
+    """
+/**
+ * Helper for pagination.
+ */
+case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
+  lazy val prev = Option(page - 1).filter(_ >= 0)
+  lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
+}
+    """
+  }
   private def tableModelType(fType:String) = {
     val ft = ScaffoldPlugin.isModelType(fType) match {
       case true =>  {
-        val mt = ScaffoldPlugin.extraPureType(fType)
         if(fType.contains("Required")){
           "Long"
         } else {
@@ -97,6 +111,38 @@ import play.api.Play.current
     """.format(m,getParser,mapCase)
   }
 
+  def fieldsWithModel(m:String,fields:Seq[(String,String)]):Seq[(String,String)] = (m.capitalize,m) +: fields.filter{ f => ScaffoldPlugin.isModelType(f._2)}
+
+  def genSqlParserWithReference(m:String,fields:Seq[(String,String)]):String = {
+
+    val caseClass = fieldsWithModel(m,fields).map(_._2).mkString("(",",",")")
+    
+    val modelParser = fieldsWithModel(m,fields).map{ f  =>
+      val fm = f._2
+      if(fm.contains("Required")){
+        fm+".simple"  
+      }else{
+        "(%s.simple ?)".format(fm)
+      }  
+    }.mkString(" ~ ")
+    
+    val caseFields = {
+      val ps = fieldsWithModel(m,fields).map(_._1).mkString("~")
+      val rs = fieldsWithModel(m,fields).map(_._1).mkString("(",",",")")
+      "case %s => %s".format(ps,rs)
+    }
+
+   val res =
+    """
+    /**
+     * Parse a %s from a ResultSet
+     */
+    val withReference = %s map {
+      case %s
+    }
+    """.format(caseClass,modelParser,caseFields)
+   res
+  }
   def genCreate(m:String,fields:Seq[(String,String)]) = {
     import org.example.ScaffoldPlugin.{tableField,modelField}
 
@@ -116,7 +162,7 @@ import play.api.Play.current
   }
 
   def genUpdate(m:String,fields:Seq[(String,String)]) = {
-    import org.example.ScaffoldPlugin.{tableField,modelField}
+
     val updateSet = fields.map(f => "%s = {%s}".format(tableField(f),tableField(f))).mkString(",")
 
     val mapOn = fields.map(f => "'%s -> v.%s".format(tableField(f),modelField(f))).mkString(",\n\t")
@@ -176,6 +222,10 @@ import play.api.Play.current
     result.append(genObjectHead)
     //genSqlPareser
     result.append(genSqlParser(m,fields))
+
+    if(hasReferenceModel(fields)){
+      result.append(genSqlParserWithReference(m,fields))
+    }
     //genMethods
     result.append(genList)
 

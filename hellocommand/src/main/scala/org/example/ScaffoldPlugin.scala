@@ -171,4 +171,10 @@ object ScaffoldPlugin extends Plugin {
     }
     columnName
   }
+
+  def hasReferenceModel(fields:Seq[(String, String)]) = {
+
+    fields.map(f => isModelType(f._2)).contains(true)
+  }
+
 }
