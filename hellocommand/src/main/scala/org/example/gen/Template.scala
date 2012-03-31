@@ -16,11 +16,12 @@ object Template {
 
 
   def genList(model:String,fields:Seq[(String, String)])={
+    import ScaffoldPlugin.modelField
     val heads = fields.map(f => "<th>%s</th>".format(f._1.capitalize)).mkString("\n\t\t")
     val rows = fields.map{ f =>
       val rowST = new ST("<td><a href=\"@routes.$MM$s.edit(v.id.get)\">@v.$f$</a></td>",'$','$')
       rowST.add("MM",model.capitalize)
-      rowST.add("f",f._1)
+      rowST.add("f",modelField(f))
       rowST.render()
     }.mkString("\n\t\t")
 
@@ -37,6 +38,21 @@ object Template {
   private def makeFormField(model:String,fields:Seq[(String, String)]) = {
     fields.map{ f =>
       val inputHtml:String = ScaffoldPlugin.extraPureType(f._2) match {
+        case t if ScaffoldPlugin.isModelType(t) => {
+          val selectInputST = new ST(
+          """
+           @select(
+                <m>Form("<f>"), 
+                <fm>.options, 
+                '_label -> "<fm>", '_default -> "-- Choose a <fm> --",
+                '_showConstraints -> false
+            )
+          """)
+          selectInputST.add("m",model)
+          selectInputST.add("f",f._1)
+          selectInputST.add("fm",t)
+          selectInputST.render()
+        }
         case "Boolean" => "@checkbox(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")"
         case "Date" => "@inputDate(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")"
         case _ => "@inputText(<m>Form(\"<f>\"), '_label -> \"<m> <f>\")"

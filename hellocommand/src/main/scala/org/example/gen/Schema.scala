@@ -1,6 +1,7 @@
 package org.example.gen
 
 import java.io.{FileWriter, File}
+import org.example.ScaffoldPlugin
 
 /**
  * Created by IntelliJ IDEA.
@@ -12,9 +13,11 @@ import java.io.{FileWriter, File}
 
 object Schema {
 
-  def gen(model:String,fields:Seq[(String, String)]) = { 
+  def gen(model:String,fields:Seq[(String, String)]) = {
+
   val columns = fields.map{f => 
     f._2 match {
+      case t if ScaffoldPlugin.isModelType(t) => "%s bigint".format(ScaffoldPlugin.tableField(f))
       case "String" => "%s varchar(255)".format(f._1)
       case "Option[String]" => "%s varchar(255)".format(f._1)
       case "Required[String]" => "%s varchar(255) NOT NULL".format(f._1)
@@ -59,9 +62,9 @@ object Schema {
 
 CREATE SEQUENCE %s_id_seq;
 CREATE TABLE %s (
-    id integer NOT NULL DEFAULT nextval('%s_id_seq'),
+    id bigint NOT NULL DEFAULT nextval('%s_id_seq'),
     %s
-    ,constraint pk_%s primary key (id))
+    ,constraint pk_%s primary key (id)
 );
 
 
@@ -69,5 +72,6 @@ CREATE TABLE %s (
 DROP TABLE %s;
 DROP SEQUENCE %s_id_seq;
     """.format(model.capitalize,model,model,model,columns,model,model,model)
+
   }
 }

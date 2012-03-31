@@ -1,6 +1,7 @@
 package org.example.gen
 
 import java.io.{File, FileWriter}
+import org.example.ScaffoldPlugin
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,6 +30,13 @@ object Controller {
   def genForm(model: String,fields:Seq[(String, String)])={
     val mapping = fields.map{f => 
       f._2 match {
+        case t if ScaffoldPlugin.isModelType(t) => {
+          if(f._2.contains("Required")) {
+            "\"%s\" -> longNumber".format(f._1)
+          }else{
+            "\"%s\" -> optional(longNumber)".format(f._1)
+          }
+        }
         case "String" => "\"%s\" -> optional(text)".format(f._1)
         case "Option[String]" => "\"%s\" -> optional(text)".format(f._1)
         case "Required[String]" => "\"%s\" -> nonEmptyText".format(f._1)

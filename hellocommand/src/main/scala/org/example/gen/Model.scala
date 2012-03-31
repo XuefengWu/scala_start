@@ -55,33 +55,55 @@ import play.api.Play.current
     head
   }
 
+  private def tableModelType(fType:String) = {
+    val ft = ScaffoldPlugin.isModelType(fType) match {
+      case true =>  {
+        val mt = ScaffoldPlugin.extraPureType(fType)
+        if(fType.contains("Required")){
+          "Long"
+        } else {
+          "Option[Long]"
+        }
+      }
+      case false => ScaffoldPlugin.extraOptionType(fType)
+    }
+    ft
+  }
   def genCaseClass(m:String,fields:Seq[(String, String)])={
+    def buildFields = {
+      fields.map{f =>
+        val ft = tableModelType(f._2)
+        ScaffoldPlugin.modelField(f) +":"+ft
+      }.mkString(",")
+    }
     //create case class
     """case class %s(id:Pk[Long], %s)
-    """.format(m.capitalize,fields.map(f => f._1+":"+ScaffoldPlugin.extraOptionType(f._2)).mkString(","))
+    """.format(m.capitalize,buildFields)
   }
-
   def genSqlParser(m:String,fields:Seq[(String,String)]) = {
+    import ScaffoldPlugin._
     val getParser = fields.map{ f =>
-       "get[%s](\"%s.%s\")".format(ScaffoldPlugin.extraOptionType(f._2),m,f._1)
+        "get[%s](\"%s.%s\")".format(tableModelType(f._2),m,tableField(f))
     }.mkString(" ~\n\t")
-    val mapCase = "case id~%s => %s(id, %s)".format(fields.map(_._1).mkString("~"),m.capitalize,fields.map(_._1).mkString(","))
-    """  val %s = {
+    
+    val mapCase = "case id~%s => %s(id, %s)".format(fields.map(modelField(_)).mkString("~"),m.capitalize,fields.map(ScaffoldPlugin.modelField(_)).mkString(","))
+
+    """  val simple = {
       get[Pk[Long]]("%s.id") ~
       %s map {
         %s
       }
     }
-    """.format(m,m,getParser,mapCase)
+    """.format(m,getParser,mapCase)
   }
 
   def genCreate(m:String,fields:Seq[(String,String)]) = {
-    val fieldsName = fields.map(_._1)
+    import org.example.ScaffoldPlugin.{tableField,modelField}
 
     val seq = "(select next value for %s_id_seq)".format(m)
-    val columns =fieldsName.mkString(",")
-    val setColumns = fieldsName.map("{"+_+"}").mkString(",")
-    val mapOn = fieldsName.map(f => "'%s -> v.%s".format(f,f)).mkString(",\n\t")
+    val columns =fields.map(tableField(_)).mkString(",")
+    val setColumns = fields.map("{"+tableField(_)+"}").mkString(",")
+    val mapOn = fields.map(f => "'%s -> v.%s".format(tableField(f),modelField(f))).mkString(",\n\t")
 
     """    def create(v:%s) {
       DB.withConnection { implicit connection =>
@@ -94,10 +116,10 @@ import play.api.Play.current
   }
 
   def genUpdate(m:String,fields:Seq[(String,String)]) = {
-    val fieldsName = fields.map(_._1)
-    val updateSet = fieldsName.map(f => "%s = {%s}".format(f,f)).mkString(",")
+    import org.example.ScaffoldPlugin.{tableField,modelField}
+    val updateSet = fields.map(f => "%s = {%s}".format(tableField(f),tableField(f))).mkString(",")
 
-    val mapOn = fieldsName.map(f => "'%s -> v.%s".format(f,f)).mkString(",\n\t")
+    val mapOn = fields.map(f => "'%s -> v.%s".format(tableField(f),modelField(f))).mkString(",\n\t")
 
     """   def update(id: Long, v: %s) = {
         DB.withConnection { implicit connection =>
@@ -117,16 +139,16 @@ import play.api.Play.current
 
     def genList = """
       def list(): List[%s] = DB.withConnection{ implicit c =>
-          SQL("select * from %s").as(%s *)
+          SQL("select * from %s").as(simple *)
         }
-      """.format(m.capitalize,m,m)
+      """.format(m.capitalize,m)
 
     def genFindById = """
   def findById(id: Long): Option[%s] = { DB.withConnection { implicit c =>
-      SQL("select * from %s where  id = {id}").on('id -> id).as(%s.singleOpt)
+      SQL("select * from %s where  id = {id}").on('id -> id).as(simple.singleOpt)
     }
   }
-    """.format(m.capitalize,m,m)
+    """.format(m.capitalize,m)
 
     def genDelete = """
       def delete(id:Long){
@@ -138,7 +160,14 @@ import play.api.Play.current
       }
       """.format(m)
 
-
+   def genOption = """
+         /**
+       * Construct the Map[String,String] needed to fill a select options set.
+       */
+      def options: Seq[(String,String)] = DB.withConnection { implicit connection =>
+        SQL("select * from %s").as(%s.simple *).map(c => c.id.toString -> c.toString)
+      }
+   """.format(m,m.capitalize)
 
     def genObjectEnd = "}"
 
@@ -157,6 +186,8 @@ import play.api.Play.current
     result.append(genDelete)
 
     result.append(genUpdate(m,fields))
+
+    result.append(genOption)
 
     result.append(genObjectEnd)
 

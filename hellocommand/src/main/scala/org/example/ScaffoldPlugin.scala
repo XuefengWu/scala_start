@@ -55,11 +55,11 @@ object ScaffoldPlugin extends Plugin {
       state
     }
 
+
+
   private def invalidateFieldType(fTypes:Seq[String]):Seq[String] = {
      val javaType = List("String","Long","Integer","Boolean","BigInteger","Float","Double","BigDecimal","Time","Timestamp","Date")
-     val modelTypes = new File("app/models").list().map(_.dropRight(6).toLowerCase)
-
-    fTypes.filterNot(ft => javaType.contains(ft) || modelTypes.contains(ft.toLowerCase))
+    fTypes.filterNot(ft => javaType.contains(extraPureType(ft)) || isModelType(ft))
   }
 
   private def genTemplate(model:String,fields:Seq[(String, String)])(implicit baseDir:String) {
@@ -149,4 +149,26 @@ object ScaffoldPlugin extends Plugin {
     }
   }
 
+
+  def isModelType(fType:String) = {
+    val modelTypes = new File("app/models").list().map(_.dropRight(6))
+    modelTypes.contains(extraPureType(fType))
+  }
+
+
+  def modelField(field:(String,String)) = {
+    val fName = ScaffoldPlugin.isModelType(field._2) match {
+      case true =>  field._1.toLowerCase+"Id"
+      case false => field._1
+    }
+    fName
+  }
+
+  def tableField(field:(String, String)) = {
+    val columnName = ScaffoldPlugin.isModelType(field._2) match {
+      case true =>  field._1.toLowerCase+"_id"
+      case false => field._1
+    }
+    columnName
+  }
 }
