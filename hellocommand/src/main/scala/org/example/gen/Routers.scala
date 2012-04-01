@@ -16,7 +16,7 @@ object Routers {
     def genRoutes = """
 
 # %ss
-GET     /%ss                      controllers.%ss.list
+GET     /%ss                      controllers.%ss.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
 GET     /%ss/new                  controllers.%ss.create
 GET     /%ss/:id                  controllers.%ss.edit(id:Long)
 POST    /%ss/:id                  controllers.%ss.update(id:Long)

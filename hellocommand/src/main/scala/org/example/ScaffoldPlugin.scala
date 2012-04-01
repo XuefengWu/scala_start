@@ -16,8 +16,28 @@ import org.example.gen._
 
 object ScaffoldPlugin extends Plugin {
 
-  override lazy val settings = Seq(commands += genCommand)
+  override lazy val settings = Seq(commands ++= Seq(genCommand,genRemoveCommand))
 
+
+  
+  lazy val genRemoveCommand = Command.single("gen-remove") { (state: State, model: String) =>
+
+    import state._
+
+    implicit val baseDir:String = configuration.baseDirectory.getPath
+    println("Remove: " + model)
+    val tDirPath = "%s/app/views/%s".format(baseDir,model)
+    val tDir = new File(tDirPath)
+    tDir.listFiles().foreach(_.delete())
+    tDir.delete()
+    val cFile = new File(baseDir + "/app/controllers/%ss.scala".format(model.capitalize))
+    cFile.delete()
+    val mFile = new File(baseDir+"/app/models/"+model.capitalize+".scala")
+    mFile.delete()
+    
+    state
+  }
+  
   lazy val genCommand =
     Command.args("gen","<model> <fields=fieldName1:fieldType~fieldName2:fieldType>") { (state,args) =>
       import state._
@@ -176,5 +196,17 @@ object ScaffoldPlugin extends Plugin {
 
     fields.map(f => isModelType(f._2)).contains(true)
   }
+
+  def fieldsWithModel(m:String,fields:Seq[(String,String)]):Seq[(String,String)] = {
+    (m,"Required[%s]".format(m.capitalize)) +: fields.filter{ f => isModelType(f._2)}
+  }
+
+  def caseClassWithReference(m:String,fields:Seq[(String,String)]) =
+    if(hasReferenceModel(fields)){
+      fieldsWithModel(m,fields).map(f => extraOptionType(f._2)).mkString("(",",",")")
+    } else {
+      m.capitalize
+    }
+
 
 }

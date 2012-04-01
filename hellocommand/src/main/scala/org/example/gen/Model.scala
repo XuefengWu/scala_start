@@ -2,6 +2,7 @@ package org.example.gen
 
 import java.io.FileWriter
 import org.example.ScaffoldPlugin
+import org.stringtemplate.v4.ST
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,7 +14,7 @@ import org.example.ScaffoldPlugin
 
 object Model {
 
-  import ScaffoldPlugin.{hasReferenceModel,extraPureType,tableField,modelField}
+  import ScaffoldPlugin.{hasReferenceModel,extraPureType,tableField,modelField,isModelType,fieldsWithModel,caseClassWithReference}
 
   def gen(model:String,fields:Seq[(String, String)])= {
     //create [models].scala
@@ -71,7 +72,7 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
     """
   }
   private def tableModelType(fType:String) = {
-    val ft = ScaffoldPlugin.isModelType(fType) match {
+    val ft = isModelType(fType) match {
       case true =>  {
         if(fType.contains("Required")){
           "Long"
@@ -91,7 +92,7 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
       }.mkString(",")
     }
     //create case class
-    """case class %s(id:Pk[Long], %s)
+    """case class %s(id:Pk[Long] = NotAssigned, %s)
     """.format(m.capitalize,buildFields)
   }
   def genSqlParser(m:String,fields:Seq[(String,String)]) = {
@@ -111,16 +112,13 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
     """.format(m,getParser,mapCase)
   }
 
-  def fieldsWithModel(m:String,fields:Seq[(String,String)]):Seq[(String,String)] = (m.capitalize,m) +: fields.filter{ f => ScaffoldPlugin.isModelType(f._2)}
 
   def genSqlParserWithReference(m:String,fields:Seq[(String,String)]):String = {
-
-    val caseClass = fieldsWithModel(m,fields).map(_._2).mkString("(",",",")")
     
     val modelParser = fieldsWithModel(m,fields).map{ f  =>
       val fm = f._2
       if(fm.contains("Required")){
-        fm+".simple"  
+        extraPureType(fm)+".simple"
       }else{
         "(%s.simple ?)".format(fm)
       }  
@@ -129,7 +127,7 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
     val caseFields = {
       val ps = fieldsWithModel(m,fields).map(_._1).mkString("~")
       val rs = fieldsWithModel(m,fields).map(_._1).mkString("(",",",")")
-      "case %s => %s".format(ps,rs)
+      " %s => %s".format(ps,rs)
     }
 
    val res =
@@ -140,7 +138,7 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
     val withReference = %s map {
       case %s
     }
-    """.format(caseClass,modelParser,caseFields)
+    """.format(caseClassWithReference(m,fields),modelParser,caseFields)
    res
   }
   def genCreate(m:String,fields:Seq[(String,String)]) = {
@@ -151,7 +149,10 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
     val setColumns = fields.map("{"+tableField(_)+"}").mkString(",")
     val mapOn = fields.map(f => "'%s -> v.%s".format(tableField(f),modelField(f))).mkString(",\n\t")
 
-    """    def create(v:%s) {
+    val res =
+    """
+
+    def create(v:%s) {
       DB.withConnection { implicit connection =>
         SQL("insert into %s (id,%s) values (%s,%s)").on(
         %s
@@ -159,6 +160,8 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
       }
     }
     """.format(m.capitalize,m,columns,seq,setColumns,mapOn)
+
+    res
   }
 
   def genUpdate(m:String,fields:Seq[(String,String)]) = {
@@ -167,7 +170,10 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
 
     val mapOn = fields.map(f => "'%s -> v.%s".format(tableField(f),modelField(f))).mkString(",\n\t")
 
-    """   def update(id: Long, v: %s) = {
+    val res =
+    """
+
+    def update(id: Long, v: %s) = {
         DB.withConnection { implicit connection =>
           SQL(
             "update %s set %s where id = {id}"
@@ -178,18 +184,53 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
         }
       }
     """.format(m.capitalize,m,updateSet,mapOn)
+    res
   }
 
   private def genService(m:String,fields:Seq[(String,String)])= {
     def genObjectHead = "object %s {\n".format(m.capitalize)
 
-    def genList = """
-      def list(): List[%s] = DB.withConnection{ implicit c =>
-          SQL("select * from %s").as(simple *)
+    def genList = {
+      
+      def filterCondition = {
+        val stringFields = fields.filter(_._2.contains("String"))
+        if(stringFields.isEmpty){
+          " 1 = 1 "
+        } else {
+          stringFields.map(f => "%s.%s like {filter}".format(m,f._1)).mkString("("," or ",")")
         }
-      """.format(m.capitalize,m)
+      }
+      val ins = getClass.getResourceAsStream("/model/list.st")
+      val lines = scala.io.Source.fromInputStream(ins).mkString
+      val sqlParser = {
+        hasReferenceModel(fields) match {
+          case true =>  "withReference"
+          case false => "simple"
+        }
+      }
+      val join = {
+        fieldsWithModel(m,fields).tail.map{ f =>
+          val jst = new ST("left join <rm> on <m>.<rf> = <rm>.id")
+          jst.add("rm",f._2.toLowerCase)
+          jst.add("m",m)
+          jst.add("rf",tableField(f))
+          jst.render()
+        }.mkString("\n")
+      }
+      val st = new ST(lines)
+      st.add("m", m)
+      st.add("MM", m.capitalize)
+      st.add("caseClassWithReference", caseClassWithReference(m,fields))
+      st.add("filterCondition", filterCondition)
+      st.add("sqlParser",sqlParser)
+      if(hasReferenceModel(fields)){
+        st.add("join","left join user on book.author_id = user.id")
+      }
+      st.render()  
+    }
 
     def genFindById = """
+
   def findById(id: Long): Option[%s] = { DB.withConnection { implicit c =>
       SQL("select * from %s where  id = {id}").on('id -> id).as(simple.singleOpt)
     }
@@ -197,6 +238,7 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
     """.format(m.capitalize,m)
 
     def genDelete = """
+
       def delete(id:Long){
         DB.withConnection{ implicit c =>
           SQL("delete from %s where id = {id}").on(
@@ -207,7 +249,8 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
       """.format(m)
 
    def genOption = """
-         /**
+
+      /**
        * Construct the Map[String,String] needed to fill a select options set.
        */
       def options: Seq[(String,String)] = DB.withConnection { implicit connection =>

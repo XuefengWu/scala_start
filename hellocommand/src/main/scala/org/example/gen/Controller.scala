@@ -102,32 +102,32 @@ object %ss extends Controller {
   def genActions(model: String)= {
 
     def genList = """
-    def list = Action {
-      Ok(views.html.%s.list(%s.list(),%sForm))
+    def list(page: Int, orderBy: Int, filter: String) = Action {  implicit request =>
+      Ok(views.html.%s.list(%s.list(page = page,orderBy = orderBy, filter = ("%%"+filter+"%%")),orderBy, filter))
     }
       """.format(model, model.capitalize, model)
 
     def genSave = """
       def save = Action { implicit request =>
         %sForm.bindFromRequest.fold(
-          errors => BadRequest(views.html.%s.list(%s.list(),errors)),
+          formWithErrors => BadRequest(views.html.%s.create(formWithErrors)),
           v => {
             %s.create(v)
-            Redirect(routes.%ss.list)
+            Home
           }
         )
       }
-      """.format( model, model,model.capitalize, model.capitalize, model.capitalize)
+      """.format( model, model, model.capitalize, model.capitalize)
 
     def genDelete = """
-      def delete(id:Long) = Action {
+      def delete(id:Long) = Action {   implicit request =>
       %s.delete(id)
-      Redirect(routes.%ss.list)
+      Home
     }
     """.format(model.capitalize, model.capitalize)
 
     def genEdit ="""
-    def edit(id: Long) = Action {
+    def edit(id: Long) = Action {  implicit request =>
       %s.findById(id).map { v =>
         Ok(views.html.%s.edit(id, %sForm.fill(v)))
       }.getOrElse(NotFound)
@@ -141,19 +141,28 @@ object %ss extends Controller {
         formWithErrors => BadRequest(views.html.%s.edit(id, formWithErrors)),
         v => {
           %s.update(id, v)
-          Redirect(routes.%ss.list).flashing("success" -> "%%s has been updated".format(v))
+          Home.flashing("success" -> "%%s has been updated".format(v))
         }
       )
     }
      """.format(model,model,model.capitalize,model.capitalize)
 
     def genCreate = """
-    def create = Action {
+    def create = Action {  implicit request =>
       Ok(views.html.%s.create(%sForm))
     }
      """.format(model,model)
 
+    def genModelHome = """
+      /**
+   * This result directly redirect to the %s home.
+   */
+  val Home = Redirect(routes.%ss.list(0, 2, ""))
+    """.format(model.capitalize,model.capitalize)
+
     val result = new StringBuffer()
+
+    result.append(genModelHome)
 
     result.append(genList)
 

@@ -16,15 +16,48 @@ object Template {
 
 
   def genList(model:String,fields:Seq[(String, String)])={
-    import ScaffoldPlugin.modelField
-    val heads = fields.map(f => "<th>%s</th>".format(f._1.capitalize)).mkString("\n\t\t")
+    import ScaffoldPlugin.{modelField,caseClassWithReference,fieldsWithModel,isModelType,extraPureType,hasReferenceModel}
+
+    val heads = fields.zipWithIndex.map{case (f,i) => "@header(%s,\"%s\")".format(i+1,f._1.capitalize)}.mkString("\n\t\t")
     val rows = fields.map{ f =>
-      val rowST = new ST("<td><a href=\"@routes.$MM$s.edit(v.id.get)\">@v.$f$</a></td>",'$','$')
-      rowST.add("MM",model.capitalize)
-      rowST.add("f",modelField(f))
+      val rowST = new ST("<td><a href=\"@routes.$MM$s.edit($mid$)\">@$m$.$f$</a></td>",'$','$')
+      if(isModelType(f._2)){
+        rowST.add("MM",extraPureType(f._2))
+        if(f._2.contains("Required")){
+          rowST.add("f","toString")
+        } else {
+          rowST.add("f","getOrElse(\"--\").toString")
+        }
+
+        rowST.add("m",f._1)
+        if(f._2.contains("Required")){
+          rowST.add("mid",f._1+".id.get")
+        }else{
+          rowST.add("mid",f._1+" match {case Some(v) => v.id.getOrElse(0);case None => 0}")
+        }
+
+      } else {
+        rowST.add("MM",model.capitalize)
+
+        if(f._2.contains("Required")){
+          rowST.add("f",modelField(f))
+        } else {
+          rowST.add("f",modelField(f)+".getOrElse(\"--\").toString")
+        }
+        rowST.add("mid",model+".id.get")
+        rowST.add("m",model)
+      }
+
       rowST.render()
     }.mkString("\n\t\t")
 
+    val caseFields = {
+      if (hasReferenceModel(fields)) {
+        fieldsWithModel(model,fields).map(_._1).mkString("  case (",",",")")
+      }else{
+        model
+      }
+    }
     val ins = getClass.getResourceAsStream("/template/list.html")
     val lines = scala.io.Source.fromInputStream(ins).mkString
     val st = new ST(lines,'$','$')
@@ -32,6 +65,8 @@ object Template {
     st.add("MM", model.capitalize)
     st.add("heads", heads)
     st.add("rows", rows)
+    st.add("caseClassWithReference",caseClassWithReference(model,fields))
+    st.add("caseFields",caseFields)
     st.render()
   }
 
