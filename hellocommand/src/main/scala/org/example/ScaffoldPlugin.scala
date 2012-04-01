@@ -39,7 +39,7 @@ object ScaffoldPlugin extends Plugin {
   }
   
   lazy val genCommand =
-    Command.args("gen","<model> <fields=fieldName1:fieldType~fieldName2:fieldType>") { (state,args) =>
+    Command.args("gen-crud","<model> <fields=fieldName1:fieldType~fieldName2:fieldType>") { (state,args) =>
       import state._
 
       implicit val baseDir:String = configuration.baseDirectory.getPath
