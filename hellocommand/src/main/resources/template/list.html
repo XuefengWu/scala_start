@@ -32,17 +32,18 @@
 
     <div id="actions">
 
-        @helper.form(action=routes.$MM$s.list()) {
+        @helper.form(action=routes.$MM$s.list(),('class,"form-search")) {
+        <i class="icon-search"></i>
         <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter $m$...">
-        <input type="submit" id="searchsubmit" value="Filter by name" class="btn primary">
+        <input type="submit" id="searchsubmit" value="Filter by name" class="btn btn-primary">
         }
 
-        <a class="btn success" id="add" href="@routes.$MM$s.create()">Add a new $MM$</a>
+        <a class="btn btn-success" id="add" href="@routes.$MM$s.create()">Add a new $MM$</a>
 
     </div>
 
     @Option(currentPage.items).filterNot(_.isEmpty).map { $m$s =>
-    <table class="zebra-striped">
+    <table class="table table-striped">
         <thead>
         <tr>
             $heads$

@@ -2,27 +2,27 @@
 
 @import helper._
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrap.twitterBootstrapFieldConstructor.f) }
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
 
 @main("edit") {
 
 <h1>Edit $m$</h1>
 
-@form(routes.$MM$s.update(id)) {
+@form(routes.$MM$s.update(id),('class,"form-horizontal")) {
 
 <fieldset>
     $inputFields$
 </fieldset>
 
 <div class="actions">
-    <input type="submit" value="Save this $m$" class="btn primary"> or
+    <input type="submit" value="Save this $m$" class="btn btn-primary"> or
     <a href="@routes.$MM$s.list()" class="btn">Cancel</a>
 </div>
 
 }
 
 @form(routes.$MM$s.delete(id), 'class -> "topRight") {
-<input type="submit" value="Delete this $m$" class="btn danger">
+<input type="submit" value="Delete this $m$" class="btn btn-danger">
 }
 
 }
