@@ -153,7 +153,12 @@ object ScaffoldPlugin extends Plugin {
       evDir.mkdirs()
 
     //calculate the last evolution number
-    val evNum = evDir.list().map(_.dropRight(4).toInt).max + 1
+    
+    val evNum = evDir.list().isEmpty match {
+      case true => 1
+      case false => evDir.list().map(_.dropRight(4).toInt).max + 1
+    }
+
     val sFile = new File(baseDir+"/conf/evolutions/default/%d.sql".format(evNum))
     val out:FileWriter = new FileWriter(sFile)
     out.write(Schema.gen(model,fields))
