@@ -225,10 +225,10 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
       st.add("sqlParser",sqlParser)
       if(hasReferenceModel(fields)){
 
-        fieldsWithModel(m,fields).tail.map(f => {
+        val joinField = fieldsWithModel(m,fields).tail.map(f => {
           "left join %s on %s.%s = %s.id".format(extraPureType(f._2),m.toLowerCase,tableField(f),extraPureType(f._2).toLowerCase)
-        })
-        st.add("join","left join user on book.author_id = user.id")
+        }).mkString("\n")
+        st.add("join",joinField)
       }
       st.render()  
     }
