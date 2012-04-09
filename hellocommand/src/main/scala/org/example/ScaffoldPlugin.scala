@@ -28,13 +28,20 @@ object ScaffoldPlugin extends Plugin {
     println("Remove: " + model)
     val tDirPath = "%s/app/views/%s".format(baseDir,model)
     val tDir = new File(tDirPath)
-    tDir.listFiles().foreach(_.delete())
-    tDir.delete()
-    val cFile = new File(baseDir + "/app/controllers/%ss.scala".format(model.capitalize))
-    cFile.delete()
-    val mFile = new File(baseDir+"/app/models/"+model.capitalize+".scala")
-    mFile.delete()
+    if(tDir.exists()){
+      tDir.listFiles().foreach(_.delete())
+      tDir.delete() 
+    }
     
+    val cFile = new File(baseDir + "/app/controllers/%ss.scala".format(model.capitalize))
+    if(cFile.exists()) {
+      cFile.delete()  
+    }
+    
+    val mFile = new File(baseDir+"/app/models/"+model.capitalize+".scala")
+    if(mFile.exists()){
+      mFile.delete()
+    }
     state
   }
   
@@ -129,6 +136,11 @@ object ScaffoldPlugin extends Plugin {
   }
   
   private def genModel(model:String,fields:Seq[(String, String)])(implicit baseDir:String){
+    val modelsDir = new File(baseDir+"/app/models")
+    if(!modelsDir.exists()){
+      modelsDir.mkdirs()
+    }
+    
     val out:FileWriter = new FileWriter(baseDir+"/app/models/"+model.capitalize+".scala")
     out.write(Model.gen(model,fields))
     out.close()
