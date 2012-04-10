@@ -1,0 +1,28 @@
+@(id: Long, testakerForm: Form[Testaker])(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("edit") {
+
+<h1>Edit testaker</h1>
+
+@form(routes.Testakers.update(id),('class,"form-horizontal")) {
+
+<fieldset>
+    @inputText(testakerForm("name"), '_label -> "testaker name")
+</fieldset>
+
+<div class="actions">
+    <input type="submit" value="Save this testaker" class="btn btn-primary"> or
+    <a href="@routes.Testakers.list()" class="btn">Cancel</a>
+</div>
+
+}
+
+@form(routes.Testakers.delete(id), 'class -> "topRight") {
+<input type="submit" value="Delete this testaker" class="btn btn-danger">
+}
+
+}

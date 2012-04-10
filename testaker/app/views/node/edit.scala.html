@@ -1,0 +1,28 @@
+@(id: Long, nodeForm: Form[Node])(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("edit") {
+
+<h1>Edit node</h1>
+
+@form(routes.Nodes.update(id),('class,"form-horizontal")) {
+
+<fieldset>
+    @inputText(nodeForm("title"), '_label -> "node title")
+</fieldset>
+
+<div class="actions">
+    <input type="submit" value="Save this node" class="btn btn-primary"> or
+    <a href="@routes.Nodes.list()" class="btn">Cancel</a>
+</div>
+
+}
+
+@form(routes.Nodes.delete(id), 'class -> "topRight") {
+<input type="submit" value="Delete this node" class="btn btn-danger">
+}
+
+}

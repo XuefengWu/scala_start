@@ -1,0 +1,39 @@
+@(questionForm: Form[Question])(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("create") {
+
+<h1>Add a question</h1>
+
+@form(routes.Questions.save(),('class,"form-horizontal")) {
+
+<fieldset>
+               @select(
+                    questionForm("node"), 
+                    Node.options, 
+                    '_label -> "Node", '_default -> "-- Choose a Node --",
+                    '_showConstraints -> false
+                )
+              
+    	           @select(
+                    questionForm("theme"), 
+                    Theme.options, 
+                    '_label -> "Theme", '_default -> "-- Choose a Theme --",
+                    '_showConstraints -> false
+                )
+              
+    	@inputText(questionForm("desc"), '_label -> "question desc")
+</fieldset>
+
+<div class="actions">
+    <input type="submit" value="Create this question" class="btn btn-primary"> or
+    <a href="@routes.Questions.list()" class="btn">Cancel</a>
+</div>
+
+}
+
+}
+    

@@ -1,0 +1,28 @@
+@(id: Long, themeForm: Form[Theme])(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("edit") {
+
+<h1>Edit theme</h1>
+
+@form(routes.Themes.update(id),('class,"form-horizontal")) {
+
+<fieldset>
+    @inputText(themeForm("name"), '_label -> "theme name")
+</fieldset>
+
+<div class="actions">
+    <input type="submit" value="Save this theme" class="btn btn-primary"> or
+    <a href="@routes.Themes.list()" class="btn">Cancel</a>
+</div>
+
+}
+
+@form(routes.Themes.delete(id), 'class -> "topRight") {
+<input type="submit" value="Delete this theme" class="btn btn-danger">
+}
+
+}

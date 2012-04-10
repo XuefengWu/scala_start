@@ -1,0 +1,42 @@
+@(id: Long, choiceForm: Form[Choice])(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("edit") {
+
+<h1>Edit choice</h1>
+
+@form(routes.Choices.update(id),('class,"form-horizontal")) {
+
+<fieldset>
+               @select(
+                    choiceForm("node"), 
+                    Node.options, 
+                    '_label -> "Node", '_default -> "-- Choose a Node --",
+                    '_showConstraints -> false
+                )
+              
+    	           @select(
+                    choiceForm("question"), 
+                    Question.options, 
+                    '_label -> "Question", '_default -> "-- Choose a Question --",
+                    '_showConstraints -> false
+                )
+              
+    	@checkbox(choiceForm("correct"), '_label -> "choice correct")
+</fieldset>
+
+<div class="actions">
+    <input type="submit" value="Save this choice" class="btn btn-primary"> or
+    <a href="@routes.Choices.list()" class="btn">Cancel</a>
+</div>
+
+}
+
+@form(routes.Choices.delete(id), 'class -> "topRight") {
+<input type="submit" value="Delete this choice" class="btn btn-danger">
+}
+
+}
