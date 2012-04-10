@@ -180,3 +180,22 @@ object QuestionDetail {
     }
   }
 }
+
+case class SpokenLanguages(country:String, languages:Seq[String])
+object SpokenLanguages{
+  def spokenLanguages(countryCode: String): Option[SpokenLanguages] = {
+  val languages: List[(String, String)] = SQL(
+  """
+    select c.name, l.language from Country c
+    join CountryLanguage l on l.CountryCode = c.Code
+    where c.code = {code};
+  """
+  )
+  .on("code" -> countryCode)
+  .as(str("name") ~ str("language") map(flatten) *)
+
+  languages.headOption.map { f =>
+  SpokenLanguages(f._1, languages.map(_._2))
+  }
+  }
+}
