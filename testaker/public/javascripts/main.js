@@ -1,5 +1,17 @@
+window.Choice = Backbone.Model.extend();
 
-window.Question = Backbone.Model.extend();
+// children collection
+var Choices = Backbone.Collection.extend({
+    model: Choice
+});
+
+window.Question = Backbone.Model.extend({
+    initialize: function() {
+        if (Array.isArray(this.get('choices'))) {
+            this.set({choices: new Choices(this.get('choices'))});
+        }
+    }
+});
 
 window.QuestionCollection = Backbone.Collection.extend({
     model:Question,
@@ -38,6 +50,38 @@ window.QuestionView = Backbone.View.extend({
     template:_.template($('#tpl-question-details').html()),
 
     render:function (eventName) {
+        this.choiceListView = new ChoiceListView({model:this.model.toJSON().choices});
+        $(this.el).html(this.template(this.model.toJSON())).append(this.choiceListView.render().el);
+        return this;
+    },
+
+ close:function () {
+        $(this.el).unbind();
+        $(this.el).empty();
+    }
+});
+
+window.ChoiceListView = Backbone.View.extend({
+
+    tagName: "ul",
+
+    render: function(){
+      _.each(this.model.models, function (choice) {
+          $(this.el).append(new ChoiceListItemView({model:choice}).render().el);
+      }, this);
+      return this;
+    }
+
+});
+
+
+window.ChoiceListItemView = Backbone.View.extend({
+
+    tagName:"li",
+
+    template:_.template($('#tpl-question-choice').html()),
+
+    render:function (eventName) {
         $(this.el).html(this.template(this.model.toJSON()));
         return this;
     },
@@ -50,17 +94,17 @@ window.QuestionView = Backbone.View.extend({
   change:function (event) {
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+        if(this.model.toJSON().correct){
+            console.log(this.model.toJSON().title+" :Bingo!");
+        }
         // You could change your model on the spot, like this:
         // var change = {};
         // change[target.name] = target.value;
         // this.model.set(change);
-    },
-
- close:function () {
-        $(this.el).unbind();
-        $(this.el).empty();
     }
+
 });
+
 
 
 var AppRouter = Backbone.Router.extend({

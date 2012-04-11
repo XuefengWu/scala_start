@@ -136,7 +136,11 @@ case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  the
     "desc" -> Json.toJson(desc.getOrElse("--")),
     "choices" -> Json.toJson(
       choices.map{ c =>
-        Json.toJson(Map("title" -> Json.toJson(c.title)))
+        Json.toJson(Map(
+          "title" -> Json.toJson(c.title),
+          "id" -> Json.toJson(c.id.get),
+          "correct" -> Json.toJson(c.correct.getOrElse(false))
+        ))
       }
     )
   ))
@@ -165,9 +169,8 @@ object QuestionDetail {
               SQL(
                 """
                   select *
-                  from question, node as qnode,theme,node,choice
-                  where question.node_id = qnode.id
-                  and question.theme_id = theme.id
+                  from question, theme,node,choice
+                  where question.theme_id = theme.id
                   and choice.question_id = question.id
                   and choice.node_id = node.id
                   and question.id = {id}
@@ -188,9 +191,8 @@ object QuestionDetail {
           SQL(
             """
               select *
-              from question, node as qnode,theme,node,choice
-              where question.node_id = qnode.id
-              and question.theme_id = theme.id
+              from question, theme,node,choice
+              where question.theme_id = theme.id
               and choice.question_id = question.id
               and choice.node_id = node.id
             """
