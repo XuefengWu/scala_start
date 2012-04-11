@@ -1,12 +1,3 @@
-@(client: String = "web")
-
-@client match {
-case "iphone" => {
-<div>Iphone</div>
-}
-case _ => {
 <script type="text/template" id="tpl-question-list-item">
     <a href='#q/<%= id %>'><%= title %></a>
 </script>
-}
-}
