@@ -63,7 +63,7 @@ window.QuestionView = Backbone.View.extend({
 
 window.ChoiceListView = Backbone.View.extend({
 
-    tagName: "ul",
+    tagName: "table",
 
     render: function(){
       _.each(this.model.models, function (choice) {
@@ -77,7 +77,7 @@ window.ChoiceListView = Backbone.View.extend({
 
 window.ChoiceListItemView = Backbone.View.extend({
 
-    tagName:"li",
+    tagName:"tr",
 
     template:_.template($('#tpl-question-choice').html()),
 
@@ -94,8 +94,12 @@ window.ChoiceListItemView = Backbone.View.extend({
   change:function (event) {
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+
         if(this.model.toJSON().correct){
             console.log(this.model.toJSON().title+" :Bingo!");
+            $('#i-'+target.id).attr("class","icon-ok");
+        }else{
+            $('#i-'+target.id).attr("class","icon-remove");
         }
         // You could change your model on the spot, like this:
         // var change = {};

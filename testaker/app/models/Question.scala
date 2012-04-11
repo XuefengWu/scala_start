@@ -139,7 +139,8 @@ case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  the
         Json.toJson(Map(
           "title" -> Json.toJson(c.title),
           "id" -> Json.toJson(c.id.get),
-          "correct" -> Json.toJson(c.correct.getOrElse(false))
+          "correct" -> Json.toJson(c.correct.getOrElse(false)),
+          "question" -> Json.toJson(c.questionId)
         ))
       }
     )
