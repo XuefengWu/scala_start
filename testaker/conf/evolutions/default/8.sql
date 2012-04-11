@@ -2,11 +2,11 @@
 
 # --- !Ups
 
-CREATE SEQUENCE choice_id_seq;
 CREATE TABLE choice (
-    id bigint NOT NULL DEFAULT nextval('choice_id_seq'),
+    id bigint NOT NULL auto_increment,
     node_id bigint,
 	question_id bigint,
+	title varchar(255) NOT NULL,
 	correct BIT
     ,constraint pk_choice primary key (id)
 );
@@ -14,5 +14,4 @@ CREATE TABLE choice (
 
 # --- !Downs
 DROP TABLE choice;
-DROP SEQUENCE choice_id_seq;
     

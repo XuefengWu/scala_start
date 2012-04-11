@@ -2,16 +2,15 @@
 
 # --- !Ups
 
-CREATE SEQUENCE comment_id_seq;
 CREATE TABLE comment (
-    id bigint NOT NULL DEFAULT nextval('comment_id_seq'),
+    id bigint NOT NULL auto_increment,
     node_id bigint,
-	replyto_id bigint
+	replyto_id bigint,
+	context varchar(255)
     ,constraint pk_comment primary key (id)
 );
 
 
 # --- !Downs
 DROP TABLE comment;
-DROP SEQUENCE comment_id_seq;
     

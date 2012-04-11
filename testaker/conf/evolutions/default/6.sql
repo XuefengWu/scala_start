@@ -2,17 +2,15 @@
 
 # --- !Ups
 
-CREATE SEQUENCE question_id_seq;
 CREATE TABLE question (
-    id bigint NOT NULL DEFAULT nextval('question_id_seq'),
+    id bigint NOT NULL auto_increment,
     node_id bigint,
 	theme_id bigint,
-	desc varchar(255)
+	description varchar(255)
     ,constraint pk_question primary key (id)
 );
 
 
 # --- !Downs
 DROP TABLE question;
-DROP SEQUENCE question_id_seq;
     

@@ -2,9 +2,8 @@
 
 # --- !Ups
 
-CREATE SEQUENCE answer_id_seq;
 CREATE TABLE answer (
-    id bigint NOT NULL DEFAULT nextval('answer_id_seq'),
+    id bigint NOT NULL auto_increment,
     node_id bigint,
 	question_id bigint,
 	choice_id bigint,
@@ -15,5 +14,4 @@ CREATE TABLE answer (
 
 # --- !Downs
 DROP TABLE answer;
-DROP SEQUENCE answer_id_seq;
     

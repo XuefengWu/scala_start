@@ -4,24 +4,17 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
+import java.sql.Timestamp
+import util.TimeStampColumn.rowToTimestamp
 
 
-    
-/**
- * Helper for pagination.
- */
-case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
-  lazy val prev = Option(page - 1).filter(_ >= 0)
-  lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
-}
-    case class Node(id:Pk[Long] = NotAssigned, title:String){
-      override def toString = title
-    }
+    case class Node(id:Pk[Long] = NotAssigned, createdAt:Timestamp = new Timestamp(System.currentTimeMillis()),lastUpdateAt:Timestamp = new Timestamp(System.currentTimeMillis()))
     object Node {
   val simple = {
       get[Pk[Long]]("node.id") ~
-      get[String]("node.title") map {
-        case id~title => Node(id, title)
+      get[Timestamp]("node.createdAt") ~
+	get[Timestamp]("node.lastUpdateAt") map {
+        case id~createdAt~lastUpdateAt => Node(id, createdAt,lastUpdateAt)
       }
     }
     /**
@@ -41,7 +34,7 @@ DB.withConnection { implicit connection =>
   val nodes = SQL(
     """
       select * from node
-      where (node.title like {filter})
+      where  1 = 1 
       order by {orderBy} nulls last
       limit {pageSize} offset {offset}
     """
@@ -55,7 +48,7 @@ DB.withConnection { implicit connection =>
   val totalRows = SQL(
     """
       select count(*) from node
-      where  (node.title like {filter})
+      where   1 = 1 
     """
   ).on(
     'filter -> filter
@@ -69,8 +62,9 @@ DB.withConnection { implicit connection =>
 
     def create(v:Node) {
       DB.withConnection { implicit connection =>
-        SQL("insert into node (id,title) values ((select next value for node_id_seq),{title})").on(
-        'title -> v.title
+        SQL("insert into node (id,createdAt,lastUpdateAt) values ((select next value for node_id_seq),{createdAt},{lastUpdateAt})").on(
+        'createdAt -> v.createdAt,
+	'lastUpdateAt -> v.lastUpdateAt
         ).executeUpdate()
       }
     }
@@ -94,10 +88,11 @@ DB.withConnection { implicit connection =>
     def update(id: Long, v: Node) = {
         DB.withConnection { implicit connection =>
           SQL(
-            "update node set title = {title} where id = {id}"
+            "update node set createdAt = {createdAt},lastUpdateAt = {lastUpdateAt} where id = {id}"
           ).on(
             'id -> id,
-            'title -> v.title
+            'createdAt -> v.createdAt,
+	'lastUpdateAt -> v.lastUpdateAt
           ).executeUpdate()
         }
       }

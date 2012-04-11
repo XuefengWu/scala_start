@@ -6,7 +6,6 @@ import play.api.db._
 import play.api.Play.current
 
 
- 
     case class Tag(id:Pk[Long] = NotAssigned, name:String,themeId:Long)
     object Tag {
   val simple = {

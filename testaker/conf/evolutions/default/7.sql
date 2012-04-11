@@ -2,9 +2,8 @@
 
 # --- !Ups
 
-CREATE SEQUENCE qtag_id_seq;
 CREATE TABLE qtag (
-    id bigint NOT NULL DEFAULT nextval('qtag_id_seq'),
+    id bigint NOT NULL auto_increment,
     question_id bigint,
 	tag_id bigint
     ,constraint pk_qtag primary key (id)
@@ -13,5 +12,4 @@ CREATE TABLE qtag (
 
 # --- !Downs
 DROP TABLE qtag;
-DROP SEQUENCE qtag_id_seq;
     

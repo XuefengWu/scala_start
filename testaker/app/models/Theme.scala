@@ -6,7 +6,6 @@ import play.api.db._
 import play.api.Play.current
 
 
- 
     case class Theme(id:Pk[Long] = NotAssigned, name:String)
     object Theme {
   val simple = {

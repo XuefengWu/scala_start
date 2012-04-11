@@ -1,20 +1,21 @@
 package models
 
+import anorm._
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
-import anorm._
+import play.api.libs
 
 
-case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long, desc: Option[String])
+case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long, description: Option[String])
 
 object Question {
   val simple = {
     get[Pk[Long]]("question.id") ~
       get[Long]("question.node_id") ~
       get[Long]("question.theme_id") ~
-      get[Option[String]]("question.desc") map {
-      case id ~ nodeId ~ themeId ~ desc => Question(id, nodeId, themeId, desc)
+      get[Option[String]]("question.description") map {
+      case id ~ nodeId ~ themeId ~ description => Question(id, nodeId, themeId, description)
     }
   }
 
@@ -44,7 +45,7 @@ object Question {
             select * from question
             left join Node on question.node_id = node.id
             left join Theme on question.theme_id = theme.id
-            where (question.desc like {filter})
+            where (question.description like {filter})
             order by {orderBy} nulls last
             limit {pageSize} offset {offset}
           """
@@ -60,7 +61,7 @@ object Question {
             select count(*) from question
             left join Node on question.node_id = node.id
             left join Theme on question.theme_id = theme.id
-            where  (question.desc like {filter})
+            where  (question.description like {filter})
           """
         ).on(
           'filter -> filter
@@ -75,10 +76,10 @@ object Question {
   def create(v: Question) {
     DB.withConnection {
       implicit connection =>
-        SQL("insert into question (id,node_id,theme_id,desc) values ((select next value for question_id_seq),{node_id},{theme_id},{desc})").on(
+        SQL("insert into question (id,node_id,theme_id,description) values ((select next value for question_id_seq),{node_id},{theme_id},{description})").on(
           'node_id -> v.nodeId,
           'theme_id -> v.themeId,
-          'desc -> v.desc
+          'description -> v.description
         ).executeUpdate()
     }
   }
@@ -106,12 +107,12 @@ object Question {
     DB.withConnection {
       implicit connection =>
         SQL(
-          "update question set node_id = {node_id},theme_id = {theme_id},desc = {desc} where id = {id}"
+          "update question set node_id = {node_id},theme_id = {theme_id},description = {description} where id = {id}"
         ).on(
           'id -> id,
           'node_id -> v.nodeId,
           'theme_id -> v.themeId,
-          'desc -> v.desc
+          'description -> v.description
         ).executeUpdate()
     }
   }
@@ -126,76 +127,79 @@ object Question {
   }
 }
 
-case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String],title:String,node: Node, theme: Theme){
-  def choices: Seq[Choice] = {
-    DB.withConnection {
-      implicit c =>
-        SQL(
-          """
-            select * from choice
-            left join Node on choice.node_id = node.id
-            left join Question on choice.question_id = question.id
-            where question.id = {id}
-          """
-        ).on('id -> id).as(Choice.simple *)
-    }
-  }
+
+case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  theme: Theme, choices: Seq[Choice] = Nil) {
+  import libs.json.Json
+
+  def toJson() = Json.toJson(Map(
+    "id" -> Json.toJson(id.get),
+    "desc" -> Json.toJson(desc.getOrElse("--")),
+    "choices" -> Json.toJson(
+      choices.map{ c =>
+        Json.toJson(Map("title" -> Json.toJson(c.title)))
+      }
+    )
+  ))
+
 }
 
 object QuestionDetail {
-  val simple = {
-      get[Pk[Long]]("question.id") ~
-      get[Option[String]]("question.desc") ~
-      get[String]("node.title") ~
-      Node.simple ~
-      Theme.simple map {
-      case id ~ desc ~ title ~ node ~ theme => QuestionDetail(id, desc, title, node, theme)
+
+  case class ChoiceDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  theme: Theme, choice: Choice)
+
+  val complex = {
+    get[Pk[Long]]("question.id") ~
+      get[Option[String]]("question.description") ~
+      Theme.simple ~
+      Choice.simple map {
+      case id ~ desc ~ theme ~ choice => ChoiceDetail(id, desc, theme, choice)
     }
   }
 
   def findById(id: Long): Option[QuestionDetail] = {
     DB.withConnection {
       implicit c =>
-        SQL(
-          """
-            select * from question
-            left join node on question.node_id = node.id
-            left join theme on question.theme_id = theme.id
-            where question.id = {id}
-          """
-        ).on('id -> id).as(simple.singleOpt)
+        val choices: Seq[ChoiceDetail] =
+          DB.withConnection {
+            implicit c =>
+              SQL(
+                """
+                  select *
+                  from question, node as qnode,theme,node,choice
+                  where question.node_id = qnode.id
+                  and question.theme_id = theme.id
+                  and choice.question_id = question.id
+                  and choice.node_id = node.id
+                  and question.id = {id}
+                """
+              ).on('id -> id).as(complex *)
+          }
+        choices.headOption.map {
+          c: ChoiceDetail =>
+            QuestionDetail(c.id, c.desc,  c.theme, List(c.choice))
+        }
     }
   }
 
-  def list:Seq[QuestionDetail] = {
-    DB.withConnection {
-      implicit c =>
-        SQL(
-          """
-            select * from question
-            left join node on question.node_id = node.id
-            left join theme on question.theme_id = theme.id
-          """
-        ).as(simple *)
+  def list: Seq[QuestionDetail] = {
+    val choices: Seq[ChoiceDetail] =
+      DB.withConnection {
+        implicit c =>
+          SQL(
+            """
+              select *
+              from question, node as qnode,theme,node,choice
+              where question.node_id = qnode.id
+              and question.theme_id = theme.id
+              and choice.question_id = question.id
+              and choice.node_id = node.id
+            """
+          ).as(complex *)
+      }
+
+    val questions = choices.groupBy(c => (c.id, c.desc,  c.theme)) map {
+      case (k, v) => QuestionDetail(k._1, k._2, k._3,  v.map(_.choice))
     }
-  }
-}
-
-case class SpokenLanguages(country:String, languages:Seq[String])
-object SpokenLanguages{
-  def spokenLanguages(countryCode: String): Option[SpokenLanguages] = {
-  val languages: List[(String, String)] = SQL(
-  """
-    select c.name, l.language from Country c
-    join CountryLanguage l on l.CountryCode = c.Code
-    where c.code = {code};
-  """
-  )
-  .on("code" -> countryCode)
-  .as(str("name") ~ str("language") map(flatten) *)
-
-  languages.headOption.map { f =>
-  SpokenLanguages(f._1, languages.map(_._2))
-  }
+    questions.toSeq
   }
 }

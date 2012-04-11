@@ -60,9 +60,8 @@ object Schema {
 
 # --- !Ups
 
-CREATE SEQUENCE %s_id_seq;
 CREATE TABLE %s (
-    id bigint NOT NULL DEFAULT nextval('%s_id_seq'),
+    id bigint NOT NULL auto_increment,
     %s
     ,constraint pk_%s primary key (id)
 );
@@ -70,8 +69,7 @@ CREATE TABLE %s (
 
 # --- !Downs
 DROP TABLE %s;
-DROP SEQUENCE %s_id_seq;
-    """.format(model.capitalize,model,model,model,columns,model,model,model)
+    """.format(model.capitalize,model,columns,model,model)
 
   }
 }

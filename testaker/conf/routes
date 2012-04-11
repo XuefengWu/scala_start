@@ -19,25 +19,6 @@ GET     /testakers/:id                  controllers.Testakers.edit(id:Long)
 POST    /testakers/:id                  controllers.Testakers.update(id:Long)
 POST    /testakers                      controllers.Testakers.save
 POST    /testakers/:id/delete           controllers.Testakers.delete(id:Long)
-    
-
-# Nodes
-GET     /nodes                      controllers.Nodes.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /nodes/new                  controllers.Nodes.create
-GET     /nodes/:id                  controllers.Nodes.edit(id:Long)
-POST    /nodes/:id                  controllers.Nodes.update(id:Long)
-POST    /nodes                      controllers.Nodes.save
-POST    /nodes/:id/delete           controllers.Nodes.delete(id:Long)
-    
-
-# Comments
-GET     /comments                      controllers.Comments.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /comments/new                  controllers.Comments.create
-GET     /comments/:id                  controllers.Comments.edit(id:Long)
-POST    /comments/:id                  controllers.Comments.update(id:Long)
-POST    /comments                      controllers.Comments.save
-POST    /comments/:id/delete           controllers.Comments.delete(id:Long)
-    
 
 # Themes
 GET     /themes                      controllers.Themes.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
@@ -70,31 +51,4 @@ GET     /questions/:id                  controllers.Questions.edit(id:Long)
 POST    /questions/:id                  controllers.Questions.update(id:Long)
 POST    /questions                      controllers.Questions.save
 POST    /questions/:id/delete           controllers.Questions.delete(id:Long)
-    
-
-# Qtags
-GET     /qtags                      controllers.Qtags.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /qtags/new                  controllers.Qtags.create
-GET     /qtags/:id                  controllers.Qtags.edit(id:Long)
-POST    /qtags/:id                  controllers.Qtags.update(id:Long)
-POST    /qtags                      controllers.Qtags.save
-POST    /qtags/:id/delete           controllers.Qtags.delete(id:Long)
-    
-
-# Choices
-GET     /choices                      controllers.Choices.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /choices/new                  controllers.Choices.create
-GET     /choices/:id                  controllers.Choices.edit(id:Long)
-POST    /choices/:id                  controllers.Choices.update(id:Long)
-POST    /choices                      controllers.Choices.save
-POST    /choices/:id/delete           controllers.Choices.delete(id:Long)
-    
-
-# Answers
-GET     /answers                      controllers.Answers.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /answers/new                  controllers.Answers.create
-GET     /answers/:id                  controllers.Answers.edit(id:Long)
-POST    /answers/:id                  controllers.Answers.update(id:Long)
-POST    /answers                      controllers.Answers.save
-POST    /answers/:id/delete           controllers.Answers.delete(id:Long)
     

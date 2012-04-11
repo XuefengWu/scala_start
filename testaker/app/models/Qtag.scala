@@ -5,7 +5,8 @@ import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
 
- 
+
+
     case class Qtag(id:Pk[Long] = NotAssigned, questionId:Long,tagId:Long)
     object Qtag {
   val simple = {

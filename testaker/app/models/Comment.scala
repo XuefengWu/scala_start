@@ -6,15 +6,15 @@ import play.api.db._
 import play.api.Play.current
 
 
-    
- 
-    case class Comment(id:Pk[Long] = NotAssigned, nodeId:Long,replytoId:Option[Long])
+
+    case class Comment(id:Pk[Long] = NotAssigned, nodeId:Long,replytoId:Option[Long],context:Option[String])
     object Comment {
   val simple = {
       get[Pk[Long]]("comment.id") ~
       get[Long]("comment.node_id") ~
-	get[Option[Long]]("comment.replyto_id") map {
-        case id~nodeId~replytoId => Comment(id, nodeId,replytoId)
+	get[Option[Long]]("comment.replyto_id") ~
+	get[Option[String]]("comment.context") map {
+        case id~nodeId~replytoId~context => Comment(id, nodeId,replytoId,context)
       }
     }
     
@@ -41,9 +41,9 @@ DB.withConnection { implicit connection =>
   val comments = SQL(
     """
       select * from comment
-      left join node n1 on comment.node_id = n1.id
-      left join node n2 on comment.replyto_id = n2.id
-      where  1 = 1 
+      left join Node on comment.node_id = node.id
+      left join Node on comment.replyto_id = node.id
+      where (comment.context like {filter})
       order by {orderBy} nulls last
       limit {pageSize} offset {offset}
     """
@@ -57,9 +57,9 @@ DB.withConnection { implicit connection =>
   val totalRows = SQL(
     """
       select count(*) from comment
-      left join node n1 on comment.node_id = n1.id
-      left join node n2 on comment.replyto_id = n2.id
-      where   1 = 1 
+      left join Node on comment.node_id = node.id
+      left join Node on comment.replyto_id = node.id
+      where  (comment.context like {filter})
     """
   ).on(
     'filter -> filter
@@ -73,9 +73,10 @@ DB.withConnection { implicit connection =>
 
     def create(v:Comment) {
       DB.withConnection { implicit connection =>
-        SQL("insert into comment (id,node_id,replyto_id) values ((select next value for comment_id_seq),{node_id},{replyto_id})").on(
+        SQL("insert into comment (id,node_id,replyto_id,context) values ((select next value for comment_id_seq),{node_id},{replyto_id},{context})").on(
         'node_id -> v.nodeId,
-	'replyto_id -> v.replytoId
+	'replyto_id -> v.replytoId,
+	'context -> v.context
         ).executeUpdate()
       }
     }
@@ -99,11 +100,12 @@ DB.withConnection { implicit connection =>
     def update(id: Long, v: Comment) = {
         DB.withConnection { implicit connection =>
           SQL(
-            "update comment set node_id = {node_id},replyto_id = {replyto_id} where id = {id}"
+            "update comment set node_id = {node_id},replyto_id = {replyto_id},context = {context} where id = {id}"
           ).on(
             'id -> id,
             'node_id -> v.nodeId,
-	'replyto_id -> v.replytoId
+	'replyto_id -> v.replytoId,
+	'context -> v.context
           ).executeUpdate()
         }
       }

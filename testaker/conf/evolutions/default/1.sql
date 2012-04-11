@@ -2,9 +2,8 @@
 
 # --- !Ups
 
-CREATE SEQUENCE testaker_id_seq;
 CREATE TABLE testaker (
-    id bigint NOT NULL DEFAULT nextval('testaker_id_seq'),
+    id bigint NOT NULL auto_increment,
     name varchar(255) NOT NULL
     ,constraint pk_testaker primary key (id)
 );
@@ -12,5 +11,4 @@ CREATE TABLE testaker (
 
 # --- !Downs
 DROP TABLE testaker;
-DROP SEQUENCE testaker_id_seq;
     

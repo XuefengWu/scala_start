@@ -6,10 +6,7 @@ import play.api.db._
 import play.api.Play.current
 
 
- 
-    case class Testaker(id:Pk[Long] = NotAssigned, name:String)  {
-      override def toString = name
-    }
+    case class Testaker(id:Pk[Long] = NotAssigned, name:String)
     object Testaker {
   val simple = {
       get[Pk[Long]]("testaker.id") ~
