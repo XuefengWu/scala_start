@@ -6,13 +6,14 @@ import play.api.db._
 import play.api.Play.current
 
 
-    case class Tag(id:Pk[Long] = NotAssigned, name:String,themeId:Long)
+    case class Tag(id:Pk[Long] = NotAssigned, name:String,note:Option[String],themeId:Long)
     object Tag {
   val simple = {
       get[Pk[Long]]("tag.id") ~
       get[String]("tag.name") ~
+      get[Option[String]]("tag.note") ~
 	get[Long]("tag.theme_id") map {
-        case id~name~themeId => Tag(id, name,themeId)
+        case id~name~note~themeId => Tag(id, name,note,themeId)
       }
     }
     
@@ -69,8 +70,9 @@ DB.withConnection { implicit connection =>
 
     def create(v:Tag) {
       DB.withConnection { implicit connection =>
-        SQL("insert into tag (id,name,theme_id) values ((select next value for tag_id_seq),{name},{theme_id})").on(
+        SQL("insert into tag (name,note,theme_id) values ({name},{note},{theme_id})").on(
         'name -> v.name,
+        'note -> v.note,
 	'theme_id -> v.themeId
         ).executeUpdate()
       }
@@ -95,10 +97,11 @@ DB.withConnection { implicit connection =>
     def update(id: Long, v: Tag) = {
         DB.withConnection { implicit connection =>
           SQL(
-            "update tag set name = {name},theme_id = {theme_id} where id = {id}"
+            "update tag set name = {name},note = {note}, theme_id = {theme_id} where id = {id}"
           ).on(
             'id -> id,
             'name -> v.name,
+            'note -> v.note,
 	'theme_id -> v.themeId
           ).executeUpdate()
         }

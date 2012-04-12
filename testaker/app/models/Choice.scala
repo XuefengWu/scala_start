@@ -7,15 +7,16 @@ import play.api.Play.current
 
 
 
-    case class Choice(id:Pk[Long] = NotAssigned, nodeId:Long,questionId:Long,title:String,correct:Option[Boolean])
+    case class Choice(id:Pk[Long] = NotAssigned, nodeId:Long,questionId:Long,title:String,note:Option[String],correct:Option[Boolean])
     object Choice {
   val simple = {
       get[Pk[Long]]("choice.id") ~
       get[Long]("choice.node_id") ~
 	get[Long]("choice.question_id") ~
 	get[String]("choice.title") ~
+        get[Option[String]]("choice.note") ~
 	get[Option[Boolean]]("choice.correct") map {
-        case id~nodeId~questionId~title~correct => Choice(id, nodeId,questionId,title,correct)
+        case id~nodeId~questionId~title~note~correct => Choice(id, nodeId,questionId,title,note,correct)
       }
     }
     
@@ -74,10 +75,11 @@ DB.withConnection { implicit connection =>
 
     def create(v:Choice) {
       DB.withConnection { implicit connection =>
-        SQL("insert into choice (id,node_id,question_id,title,correct) values ((select next value for choice_id_seq),{node_id},{question_id},{title},{correct})").on(
+        SQL("insert into choice (node_id,question_id,title,correct) values ({node_id},{question_id},{title},{note},{correct})").on(
         'node_id -> v.nodeId,
 	'question_id -> v.questionId,
 	'title -> v.title,
+        'note -> v.note,
 	'correct -> v.correct
         ).executeUpdate()
       }
@@ -102,12 +104,13 @@ DB.withConnection { implicit connection =>
     def update(id: Long, v: Choice) = {
         DB.withConnection { implicit connection =>
           SQL(
-            "update choice set node_id = {node_id},question_id = {question_id},title = {title},correct = {correct} where id = {id}"
+            "update choice set node_id = {node_id},question_id = {question_id},title = {title},note = {note}, correct = {correct} where id = {id}"
           ).on(
             'id -> id,
             'node_id -> v.nodeId,
 	'question_id -> v.questionId,
 	'title -> v.title,
+          'note -> v.note,
 	'correct -> v.correct
           ).executeUpdate()
         }

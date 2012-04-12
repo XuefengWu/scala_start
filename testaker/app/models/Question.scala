@@ -7,15 +7,16 @@ import play.api.Play.current
 import play.api.libs
 
 
-case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long, description: Option[String])
+case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long, description: Option[String], note: Option[String])
 
 object Question {
   val simple = {
     get[Pk[Long]]("question.id") ~
       get[Long]("question.node_id") ~
       get[Long]("question.theme_id") ~
-      get[Option[String]]("question.description") map {
-      case id ~ nodeId ~ themeId ~ description => Question(id, nodeId, themeId, description)
+      get[Option[String]]("question.description") ~
+      get[Option[String]]("question.note")map {
+      case id ~ nodeId ~ themeId ~ description ~note => Question(id, nodeId, themeId, description,note)
     }
   }
 
@@ -76,10 +77,11 @@ object Question {
   def create(v: Question) {
     DB.withConnection {
       implicit connection =>
-        SQL("insert into question (id,node_id,theme_id,description) values ((select next value for question_id_seq),{node_id},{theme_id},{description})").on(
+        SQL("insert into question (node_id,theme_id,description,note) values ({node_id},{theme_id},{description},{note})").on(
           'node_id -> v.nodeId,
           'theme_id -> v.themeId,
-          'description -> v.description
+          'description -> v.description,
+          'note -> v.note
         ).executeUpdate()
     }
   }
@@ -107,12 +109,13 @@ object Question {
     DB.withConnection {
       implicit connection =>
         SQL(
-          "update question set node_id = {node_id},theme_id = {theme_id},description = {description} where id = {id}"
+          "update question set node_id = {node_id},theme_id = {theme_id},description = {description},note = {note} where id = {id}"
         ).on(
           'id -> id,
           'node_id -> v.nodeId,
           'theme_id -> v.themeId,
-          'description -> v.description
+          'description -> v.description,
+          'note -> v.note
         ).executeUpdate()
     }
   }
@@ -128,12 +131,13 @@ object Question {
 }
 
 
-case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  theme: Theme, choices: Seq[Choice] = Nil) {
+case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String], note: Option[String],  theme: Theme, choices: Seq[Choice] = Nil) {
   import libs.json.Json
 
   def toJson() = Json.toJson(Map(
     "id" -> Json.toJson(id.get),
     "desc" -> Json.toJson(desc.getOrElse("--")),
+    "note" -> Json.toJson(note.getOrElse("--")),
     "choices" -> Json.toJson(
       choices.map{ c =>
         Json.toJson(Map(
@@ -150,14 +154,15 @@ case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  the
 
 object QuestionDetail {
 
-  case class ChoiceDetail(id: Pk[Long] = NotAssigned, desc: Option[String],  theme: Theme, choice: Choice)
+  case class ChoiceDetail(id: Pk[Long] = NotAssigned, desc: Option[String],note: Option[String], theme: Theme, choice: Choice)
 
   val complex = {
     get[Pk[Long]]("question.id") ~
       get[Option[String]]("question.description") ~
+      get[Option[String]]("question.note") ~
       Theme.simple ~
       Choice.simple map {
-      case id ~ desc ~ theme ~ choice => ChoiceDetail(id, desc, theme, choice)
+      case id ~ desc ~ note~ theme ~ choice => ChoiceDetail(id, desc,note, theme, choice)
     }
   }
 
@@ -180,7 +185,7 @@ object QuestionDetail {
           }
         choices.headOption.map {
           c: ChoiceDetail =>
-            QuestionDetail(c.id, c.desc,  c.theme, List(c.choice))
+            QuestionDetail(c.id, c.desc,c.note, c.theme, List(c.choice))
         }
     }
   }
@@ -200,8 +205,8 @@ object QuestionDetail {
           ).as(complex *)
       }
 
-    val questions = choices.groupBy(c => (c.id, c.desc,  c.theme)) map {
-      case (k, v) => QuestionDetail(k._1, k._2, k._3,  v.map(_.choice))
+    val questions = choices.groupBy(c => (c.id, c.desc,c.note, c.theme)) map {
+      case (k, v) => QuestionDetail(k._1, k._2, k._3, k._4,v.map(_.choice))
     }
     questions.toSeq
   }

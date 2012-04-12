@@ -14,6 +14,7 @@ object Tags extends Controller {
     mapping(
       "id" -> ignored(NotAssigned:Pk[Long]),
       "name" -> nonEmptyText,
+      "note" -> optional(text),
 	"theme" -> longNumber
     )(Tag.apply)(Tag.unapply)
   )

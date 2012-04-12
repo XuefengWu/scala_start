@@ -7,6 +7,7 @@ CREATE TABLE choice (
     node_id bigint,
 	question_id bigint,
 	title varchar(255) NOT NULL,
+	note TEXT,
 	correct BIT
     ,constraint pk_choice primary key (id)
 );

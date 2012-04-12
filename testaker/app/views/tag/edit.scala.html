@@ -12,12 +12,15 @@
 
 <fieldset>
     @inputText(tagForm("name"), '_label -> "tag name")
-    	           @select(
-                    tagForm("theme"), 
-                    Theme.options, 
-                    '_label -> "Theme", '_default -> "-- Choose a Theme --",
-                    '_showConstraints -> false
-                )
+
+    @inputText(tagForm("note"), '_label -> "note")
+
+       @select(
+        tagForm("theme"),
+        Theme.options,
+        '_label -> "Theme", '_default -> "-- Choose a Theme --",
+        '_showConstraints -> false
+    )
               
 </fieldset>
 

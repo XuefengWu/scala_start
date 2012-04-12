@@ -15,8 +15,9 @@ object Questions extends Controller {
     mapping(
       "id" -> ignored(NotAssigned:Pk[Long]),
       "node" -> longNumber,
-	"theme" -> longNumber,
-	"description" -> optional(text)
+	  "theme" -> longNumber,
+	  "description" -> optional(text),
+      "note" -> optional(text)
     )(Question.apply)(Question.unapply)
   )
     
