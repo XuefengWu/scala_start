@@ -36,10 +36,11 @@ window.QuestionListItemView = Backbone.View.extend({
 
     tagName:"li",
 
-    template:_.template($('#tpl-question-list-item').html()),
+    className: "well",
 
     render:function (eventName) {
-        $(this.el).html(this.template(this.model.toJSON()));
+        this.questionView = new QuestionView({model:this.model});
+        $(this.el).html(this.questionView.render().el);
         return this;
     }
 
@@ -47,7 +48,7 @@ window.QuestionListItemView = Backbone.View.extend({
 
 window.QuestionView = Backbone.View.extend({
 
-    template:_.template($('#tpl-question-details').html()),
+    template:_.template($('#tpl-question-item').html()),
 
     render:function (eventName) {
         this.choiceListView = new ChoiceListView({model:this.model.toJSON().choices});

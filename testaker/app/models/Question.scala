@@ -137,13 +137,14 @@ case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String], note
   def toJson() = Json.toJson(Map(
     "id" -> Json.toJson(id.get),
     "desc" -> Json.toJson(desc.getOrElse("--")),
-    "note" -> Json.toJson(note.getOrElse("--")),
+    "note" -> Json.toJson(note.getOrElse("")),
     "choices" -> Json.toJson(
       choices.map{ c =>
         Json.toJson(Map(
           "title" -> Json.toJson(c.title),
           "id" -> Json.toJson(c.id.get),
           "correct" -> Json.toJson(c.correct.getOrElse(false)),
+          "note" -> Json.toJson(c.note.getOrElse("")),
           "question" -> Json.toJson(c.questionId)
         ))
       }
