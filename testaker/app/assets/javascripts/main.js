@@ -25,6 +25,7 @@ var AppRouter = Backbone.Router.extend({
             success:function(data){
                 this.questionDetailView = new QuestionDetailView({model:data});
                 $('#content').html(this.questionDetailView.render().el);
+                $('#detail-question-desc-'+id).parent().append("loading comment for question...");
             }
         });
     }

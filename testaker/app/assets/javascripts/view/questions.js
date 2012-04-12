@@ -15,11 +15,13 @@ window.ChoiceListItemView = Backbone.View.extend({
     },
 
     change:function (event) {
+        var c = this.model.toJSON();
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
-        $('.option-question-'+this.model.toJSON().questionId).prop('disabled', true);
-        if(this.model.toJSON().correct){
-            console.log(this.model.toJSON().title+" :Bingo!");
+        $('.option-question-'+c.questionId).prop('disabled', true);
+        $('#answer-note-question-'+c.questionId).focus();
+        if(c.correct){
+            console.log(c.title+" :Bingo!");
             $('#i-'+target.id).attr("class","icon-ok");
         }else{
             $('#i-'+target.id).attr("class","icon-remove");
@@ -51,8 +53,11 @@ window.QuestionView = Backbone.View.extend({
     template:_.template($('#tpl-question-item').html()),
 
     render:function (eventName) {
-        this.choiceListView = new ChoiceListView({model:this.model.toJSON().choices});
-        $(this.el).html(this.template(this.model.toJSON())).append(this.choiceListView.render().el);
+        var q =  this.model.toJSON();
+        var html = $(this.el).html(this.template(q));
+        this.choiceListView = new ChoiceListView({model:q.choices});
+        html.append(this.choiceListView.render().el);
+        html.append("<input type='text' class='span3' placeholder='Type something…' id='answer-note-question-"+q.id+"'>");
         return this;
     },
 
