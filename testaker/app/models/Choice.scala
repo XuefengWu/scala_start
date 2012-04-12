@@ -23,8 +23,8 @@ import play.api.Play.current
     /**
      * Parse a (Choice,Node,Question) from a ResultSet
      */
-    val withReference = Choice.simple ~ Node.simple ~ Question.simple map {
-      case  choice~node~question => (choice,node,question)
+    val withReference = Choice.simple ~ Node.simple  map {
+      case  choice~node => (choice,node )
     }
     /**
 * Return a page of (Choice,Node,Question).
@@ -34,7 +34,7 @@ import play.api.Play.current
 * @param orderBy used for sorting
 * @param filter Filter applied on the name column
 */
-def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Choice,Node,Question)] = {
+def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Choice,Node )] = {
 
 val offest = pageSize * page
 

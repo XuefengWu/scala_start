@@ -22,8 +22,8 @@ import play.api.Play.current
     /**
      * Parse a (Answer,Node,Question,Choice,Testaker) from a ResultSet
      */
-    val withReference = Answer.simple ~ Node.simple ~ Question.simple ~ Choice.simple ~ Testaker.simple map {
-      case  answer~node~question~choice~testaker => (answer,node,question,choice,testaker)
+    val withReference = Answer.simple ~ Node.simple   ~ Choice.simple ~ Testaker.simple map {
+      case  answer~node~ choice~testaker => (answer,node, choice,testaker)
     }
     /**
 * Return a page of (Answer,Node,Question,Choice,Testaker).
@@ -33,7 +33,7 @@ import play.api.Play.current
 * @param orderBy used for sorting
 * @param filter Filter applied on the name column
 */
-def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Answer,Node,Question,Choice,Testaker)] = {
+def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Answer,Node,Choice,Testaker)] = {
 
 val offest = pageSize * page
 

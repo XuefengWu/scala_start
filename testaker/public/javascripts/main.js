@@ -13,6 +13,8 @@ window.Question = Backbone.Model.extend({
     }
 });
 
+
+
 window.QuestionCollection = Backbone.Collection.extend({
     model:Question,
     url:"/api/q"
@@ -96,7 +98,7 @@ window.ChoiceListItemView = Backbone.View.extend({
   change:function (event) {
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
-
+        $('.option-question-'+this.model.toJSON().questionId).prop('disabled', true);
         if(this.model.toJSON().correct){
             console.log(this.model.toJSON().title+" :Bingo!");
             $('#i-'+target.id).attr("class","icon-ok");
@@ -112,6 +114,23 @@ window.ChoiceListItemView = Backbone.View.extend({
 });
 
 
+window.ChoiceDetail = Backbone.Model.extend();
+
+// children collection
+var ChoiceDetails = Backbone.Collection.extend({
+    model: ChoiceDetail
+});
+
+window.QuestionDetail = Backbone.Model.extend({
+    url:"/api/q/1",
+    //urlRoot :"/api/q/",
+
+    initialize: function() {
+        if (Array.isArray(this.get('choices'))) {
+            this.set({choices: new ChoiceDetail(this.get('choices'))});
+        }
+    }
+});
 
 window.QuestionDetailView = Backbone.View.extend({
 
@@ -121,9 +140,17 @@ window.QuestionDetailView = Backbone.View.extend({
 
     className: "well",
 
+    initialize:function () {
+            this.model.bind("reset", this.render, this);
+    },
+
     render:function (eventName) {
-        this.choiceDetailListView = new ChoiceDetailListView({model:this.model.toJSON().choices});
-        $(this.el).html(this.template(this.model.toJSON())).append(this.choiceDetailListView.render().el);
+        console.log(this.model.attributes);
+        var q = this.model.toJSON();
+        console.log(q);
+        console.log(q.desc);
+        this.choiceDetailListView = new ChoiceDetailListView({model:q.choices});
+        $(this.el).html(this.template(q)).append(this.choiceDetailListView.render().el);
         return this;
     },
 
@@ -174,6 +201,7 @@ window.ChoiceDetailListItemView = Backbone.View.extend({
   change:function (event) {
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+        $('.option-question-'+this.model.toJSON().questionId).prop('disabled', true);
         if(this.model.toJSON().correct){
             console.log(this.model.toJSON().title+" :Bingo!");
             $('#i-'+target.id).addClass("icon-ok");
@@ -203,8 +231,9 @@ var AppRouter = Backbone.Router.extend({
     },
 
     questionDetails:function (id) {
-        this.question = this.questionList.get(id);
-        this.questionDetailView = new QuestionDetailView({model:this.question});
+        this.questionDetail = new QuestionDetail(id);
+        this.questionDetailView = new QuestionDetailView({model:this.questionDetail});
+        this.questionDetail.fetch();
         $('#content').html(this.questionDetailView.render().el);
     }
 });

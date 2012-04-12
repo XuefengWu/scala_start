@@ -41,14 +41,6 @@ POST    /tags/:id/delete           controllers.Tags.delete(id:Long)
 # Questions
 GET     /api/q                      controllers.Questions.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
 GET     /api/q/:id                  controllers.Questions.show(id:Long)
-POST    /api/q                      controllers.Questions.save
-PUT     /api/q/:id                  controllers.Questions.update(id:Long)
+#POST    /api/q                      controllers.Questions.save
+#PUT     /api/q/:id                  controllers.Questions.update(id:Long)
 DELETE  /api/q/:id                  controllers.Questions.delete(id:Long)
-
-GET     /questions                      controllers.Questions.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /questions/new                  controllers.Questions.create
-GET     /questions/:id                  controllers.Questions.edit(id:Long)
-POST    /questions/:id                  controllers.Questions.update(id:Long)
-POST    /questions                      controllers.Questions.save
-POST    /questions/:id/delete           controllers.Questions.delete(id:Long)
-    

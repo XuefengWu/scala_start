@@ -20,8 +20,8 @@ import play.api.Play.current
     /**
      * Parse a (Qtag,Question,Tag) from a ResultSet
      */
-    val withReference = Qtag.simple ~ Question.simple ~ Tag.simple map {
-      case  qtag~question~tag => (qtag,question,tag)
+    val withReference = Qtag.simple ~ Tag.simple map {
+      case  qtag~tag => (qtag,tag)
     }
     /**
 * Return a page of (Qtag,Question,Tag).
@@ -31,7 +31,7 @@ import play.api.Play.current
 * @param orderBy used for sorting
 * @param filter Filter applied on the name column
 */
-def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Qtag,Question,Tag)] = {
+def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Qtag ,Tag)] = {
 
 val offest = pageSize * page
 

@@ -21,8 +21,8 @@ object Application extends Controller{
     import routes.javascript._
     Ok(
       Routes.javascriptRouter("jsRoutes")(
-        Questions.index,Questions.list,Questions.save,Questions.delete,
-        Questions.show,Questions.edit,Questions.update,Questions.create
+        Questions.index,Questions.list,Questions.delete,
+        Questions.show
       )
     ).as("text/javascript")
   }
