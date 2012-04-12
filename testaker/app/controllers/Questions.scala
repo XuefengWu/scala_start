@@ -32,7 +32,7 @@ object Questions extends Controller {
 
   def show(id: Long) = Action {
     implicit request =>
-      QuestionDetail.findById(id).map {
+      Question.findById(id).map {
         q =>
           Ok(q.toJson())
       }.getOrElse(NotFound)

@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String,morehead: String = "")(content: Html)
 
 <!DOCTYPE html>
 
@@ -12,7 +12,7 @@
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/underscore-min.js")"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/backbone-min.js")"></script>
-
+        @Html(morehead)
     </head>
     <body>
     <header class="topbar">
@@ -27,7 +27,7 @@
         @content
     </section>
 
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/main.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/main.min.js")"></script>
 
     </body>
 </html>

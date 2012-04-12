@@ -13,12 +13,14 @@ case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long, des
   def toJson() = Json.toJson(Map(
     "id" -> Json.toJson(id.get),
     "desc" -> Json.toJson(description.getOrElse("--")),
+    "note" -> Json.toJson(note.getOrElse("")),
     "choices" -> Json.toJson(
       choices.map{ c =>
         Json.toJson(Map(
           "title" -> Json.toJson(c.title),
           "id" -> Json.toJson(c.id.get),
           "correct" -> Json.toJson(c.correct.getOrElse(false)),
+          "note" -> Json.toJson(c.note.getOrElse("")),
           "questionId" -> Json.toJson(c.questionId)
         ))
       }
@@ -150,45 +152,5 @@ case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String], note
       }
     )
   ))
-
-}
-
-object QuestionDetail {
-
-  case class ChoiceDetail(id: Pk[Long] = NotAssigned, desc: Option[String],note: Option[String], theme: Theme, choice: Choice)
-
-  val complex = {
-    get[Pk[Long]]("question.id") ~
-      get[Option[String]]("question.description") ~
-      get[Option[String]]("question.note") ~
-      Theme.simple ~
-      Choice.simple map {
-      case id ~ desc ~ note~ theme ~ choice => ChoiceDetail(id, desc,note, theme, choice)
-    }
-  }
-
-  def findById(id: Long): Option[QuestionDetail] = {
-    DB.withConnection {
-      implicit c =>
-        val choices: Seq[ChoiceDetail] =
-          DB.withConnection {
-            implicit c =>
-              SQL(
-                """
-                  select *
-                  from question, theme,node,choice
-                  where question.theme_id = theme.id
-                  and choice.question_id = question.id
-                  and choice.node_id = node.id
-                  and question.id = {id}
-                """
-              ).on('id -> id).as(complex *)
-          }
-        choices.headOption.map {
-          c: ChoiceDetail =>
-            QuestionDetail(c.id, c.desc,c.note, c.theme, choices.map(_.choice))
-        }
-    }
-  }
 
 }
