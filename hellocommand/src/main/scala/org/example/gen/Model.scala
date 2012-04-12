@@ -144,7 +144,6 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
   def genCreate(m:String,fields:Seq[(String,String)]) = {
     import org.example.ScaffoldPlugin.{tableField,modelField}
 
-    val seq = "(select next value for %s_id_seq)".format(m)
     val columns =fields.map(tableField(_)).mkString(",")
     val setColumns = fields.map("{"+tableField(_)+"}").mkString(",")
     val mapOn = fields.map(f => "'%s -> v.%s".format(tableField(f),modelField(f))).mkString(",\n\t")
@@ -154,12 +153,12 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
 
     def create(v:%s) {
       DB.withConnection { implicit connection =>
-        SQL("insert into %s (id,%s) values (%s,%s)").on(
+        SQL("insert into %s (%s) values (%s)").on(
         %s
         ).executeUpdate()
       }
     }
-    """.format(m.capitalize,m,columns,seq,setColumns,mapOn)
+    """.format(m.capitalize,m,columns,setColumns,mapOn)
 
     res
   }
