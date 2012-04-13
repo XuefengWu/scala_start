@@ -227,14 +227,88 @@ window.ChoiceDetailListItemView = Backbone.View.extend({
 
 
 /**  question comments ***/
-window.QComment = Backbone.Model.extend();
+window.QComment = Backbone.Model.extend({
+  urlRoot:'api/qc/',
+
+  initialize:function () {
+        this.qcs = new QCommentCollection();
+        this.qcs.url = '../api/qc/' + this.id;
+    }
+
+});
 
 window.QCommentCollection = Backbone.Collection.extend({
     model:QComment,
-    urlRoot :"/api/qc/"
+
+     url: 'api/qc/',
+
+       findByQuestion:function (args) {
+            // TODO: Modify service to include firstName in search
+            var collection = this;
+            var qid = args.id;
+            var url = (qid == '') ? 'api/qc/' : "api/qc/" + qid;
+            console.log('findByQuestion: ' + qid);
+            var self = this;
+            $.ajax({
+                url:url,
+                dataType:"json",
+                success:function (data) {
+                    self.reset(data);
+                    var success = args.success;
+                    if(success) success(collection);
+                }
+            });
+        }
 });
 
 
+window.QCommentCollectionView = Backbone.View.extend({
+
+    tagName: "ul",
+
+    render: function(){
+        console.log("QCommentCollectionView:");
+        console.log(this.model);
+        console.log(this.model.models);
+        console.log("render each model");
+        _.each(this.model.models, function (comment) {
+            console.log("render:");
+            console.log(comment);
+            $(this.el).append(new QCommentCollectionItemView({model:comment}).render().el);
+        }, this);
+        return this;
+    }
+
+});
+
+
+window.QCommentCollectionItemView = Backbone.View.extend({
+
+    tagName:"li",
+
+    template:_.template($('#tpl-detail-question-comment').html()),
+
+    render:function (eventName) {
+        var c = this.model.toJSON();
+        $(this.el).html(this.template(c));
+        return this;
+    },
+
+    events:{
+        "change input":"change",
+        "change textarea":"change"
+    },
+
+    change:function (event) {
+        var target = event.target;
+        console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+        // You could change your model on the spot, like this:
+        // var change = {};
+        // change[target.name] = target.value;
+        // this.model.set(change);
+    }
+
+});
 var AppRouter = Backbone.Router.extend({
 
     routes:{
@@ -255,7 +329,12 @@ var AppRouter = Backbone.Router.extend({
             success:function(data){
                 this.questionDetailView = new QuestionDetailView({model:data});
                 $('#content').html(this.questionDetailView.render().el);
-                $('#detail-question-desc-'+id).parent().append("loading comment for question...");
+                this.qCommentList = new QCommentCollection();
+                this.qCommentList.findByQuestion({id:id,success:function(data){
+                    this.qCommentListView = new QCommentCollectionView({model:data});
+                    $('#detail-question-desc-'+id).parent().parent().append(this.qCommentListView.render().el);
+                }});
+
             }
         });
     }

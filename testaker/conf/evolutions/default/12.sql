@@ -43,8 +43,16 @@ insert into choice (id,node_id,question_id,title,note,correct) values (  8,10,2,
 
 
 insert into node (id,lastUpdateAt) values (  11,'2012-04-10 08:00:00');
-
 insert into comment (id,node_id,replyTo_id,context) values (1,11,1,"好问题!");
+
+insert into node (id,lastUpdateAt) values (  12,'2012-04-10 08:00:00');
+insert into comment (id,node_id,replyTo_id,context) values (2,12,1,"有点不明白");
+
+insert into node (id,lastUpdateAt) values (  13,'2012-04-10 08:00:00');
+insert into comment (id,node_id,replyTo_id,context) values (3,13,6,"有些古怪的问题");
+
+insert into node (id,lastUpdateAt) values (  14,'2012-04-10 08:00:00');
+insert into comment (id,node_id,replyTo_id,context) values (4,14,6,"这个问题有意思");
 
 # --- !Downs
 delete from comment;
