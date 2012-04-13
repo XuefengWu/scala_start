@@ -1,0 +1,35 @@
+@(id: Long, examForm: Form[Exam])(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main("edit") {
+
+<h1>Edit exam</h1>
+
+@form(routes.Exams.update(id),('class,"form-horizontal")) {
+
+<fieldset>
+    @inputText(examForm("name"), '_label -> "exam name")
+    	           @select(
+                    examForm("testaker"), 
+                    Testaker.options, 
+                    '_label -> "Testaker", '_default -> "-- Choose a Testaker --",
+                    '_showConstraints -> false
+                )
+              
+</fieldset>
+
+<div class="actions">
+    <input type="submit" value="Save this exam" class="btn btn-primary"> or
+    <a href="@routes.Exams.list()" class="btn">Cancel</a>
+</div>
+
+}
+
+@form(routes.Exams.delete(id), 'class -> "topRight") {
+<input type="submit" value="Delete this exam" class="btn btn-danger">
+}
+
+}

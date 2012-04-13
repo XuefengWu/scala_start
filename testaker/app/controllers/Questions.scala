@@ -7,7 +7,7 @@ import libs.json.Json
 import play.api.data._
 import play.api.data.Forms._
 import anorm.{Pk, NotAssigned}
-import models.{QuestionDetail, Question}
+import models.{Comment, Question}
 
 object Questions extends Controller {
 
@@ -38,6 +38,14 @@ object Questions extends Controller {
       }.getOrElse(NotFound)
   }
 
+  def questionComment(id:Long) = Action {
+    implicit request =>
+      Ok(Json.toJson(
+        Comment.forQuestion(id).map {
+          qc =>
+            qc.toJson()
+        }))
+  }
 
   def delete(id: Long) = Action {
     implicit request =>

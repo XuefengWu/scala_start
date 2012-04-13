@@ -7,8 +7,8 @@ CREATE TABLE answer (
     node_id bigint,
 	question_id bigint,
 	choice_id bigint,
-	testaker_id bigint
-    ,constraint pk_answer primary key (id)
+	exam_id bigint,
+    constraint pk_answer primary key (id)
 );
 
 

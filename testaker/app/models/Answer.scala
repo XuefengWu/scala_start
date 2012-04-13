@@ -7,23 +7,23 @@ import play.api.Play.current
 
 
 
-    case class Answer(id:Pk[Long] = NotAssigned, nodeId:Long,questionId:Long,choiceId:Long,testakerId:Long)
+    case class Answer(id:Pk[Long] = NotAssigned, nodeId:Long,questionId:Long,choiceId:Long,examId:Long)
     object Answer {
   val simple = {
       get[Pk[Long]]("answer.id") ~
       get[Long]("answer.node_id") ~
 	get[Long]("answer.question_id") ~
 	get[Long]("answer.choice_id") ~
-	get[Long]("answer.testaker_id") map {
-        case id~nodeId~questionId~choiceId~testakerId => Answer(id, nodeId,questionId,choiceId,testakerId)
+	get[Long]("answer.exam_id") map {
+        case id~nodeId~questionId~choiceId~examId => Answer(id, nodeId,questionId,choiceId,examId)
       }
     }
     
     /**
      * Parse a (Answer,Node,Question,Choice,Testaker) from a ResultSet
      */
-    val withReference = Answer.simple ~ Node.simple   ~ Choice.simple ~ Testaker.simple map {
-      case  answer~node~ choice~testaker => (answer,node, choice,testaker)
+    val withReference = Answer.simple ~ Node.simple   ~ Choice.simple ~ Exam.simple map {
+      case  answer~node~ choice~exam => (answer,node, choice,exam)
     }
     /**
 * Return a page of (Answer,Node,Question,Choice,Testaker).
@@ -33,7 +33,7 @@ import play.api.Play.current
 * @param orderBy used for sorting
 * @param filter Filter applied on the name column
 */
-def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Answer,Node,Choice,Testaker)] = {
+def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Answer,Node,Choice,Exam)] = {
 
 val offest = pageSize * page
 
@@ -45,7 +45,7 @@ DB.withConnection { implicit connection =>
       left join Node on answer.node_id = node.id
       left join Question on answer.question_id = question.id
       left join Choice on answer.choice_id = choice.id
-      left join Testaker on answer.testaker_id = testaker.id
+      left join Exam on answer.exam_id = exam.id
       where  1 = 1 
       order by {orderBy} nulls last
       limit {pageSize} offset {offset}
@@ -63,7 +63,7 @@ DB.withConnection { implicit connection =>
       left join Node on answer.node_id = node.id
       left join Question on answer.question_id = question.id
       left join Choice on answer.choice_id = choice.id
-      left join Testaker on answer.testaker_id = testaker.id
+      left join Exam on answer.exam_id = exam.id
       where   1 = 1 
     """
   ).on(
@@ -78,11 +78,11 @@ DB.withConnection { implicit connection =>
 
     def create(v:Answer) {
       DB.withConnection { implicit connection =>
-        SQL("insert into answer (id,node_id,question_id,choice_id,testaker_id) values ((select next value for answer_id_seq),{node_id},{question_id},{choice_id},{testaker_id})").on(
+        SQL("insert into answer (node_id,question_id,choice_id,exam_id) values ({node_id},{question_id},{choice_id},{exam_id})").on(
         'node_id -> v.nodeId,
 	'question_id -> v.questionId,
 	'choice_id -> v.choiceId,
-	'testaker_id -> v.testakerId
+	'exam_id -> v.examId
         ).executeUpdate()
       }
     }
@@ -106,13 +106,13 @@ DB.withConnection { implicit connection =>
     def update(id: Long, v: Answer) = {
         DB.withConnection { implicit connection =>
           SQL(
-            "update answer set node_id = {node_id},question_id = {question_id},choice_id = {choice_id},testaker_id = {testaker_id} where id = {id}"
+            "update answer set node_id = {node_id},question_id = {question_id},choice_id = {choice_id},exam_id = {exam_id} where id = {id}"
           ).on(
             'id -> id,
             'node_id -> v.nodeId,
 	'question_id -> v.questionId,
 	'choice_id -> v.choiceId,
-	'testaker_id -> v.testakerId
+	'exam_id -> v.examId
           ).executeUpdate()
         }
       }

@@ -52,9 +52,12 @@ object Question {
           SQL(
             """
               select *
-              from question,theme,choice
+              from question,theme,choice,exam,examQuestion
               where question.theme_id = theme.id
+              and examQuestion.question_id = question.id
+              and examQuestion.exam_id = exam.id
               and choice.question_id = question.id
+              and exam.id = 1
             """
           ).as(withChoice *)
       }
@@ -129,28 +132,5 @@ object Question {
         ).executeUpdate()
     }
   }
-
-}
-
-
-case class QuestionDetail(id: Pk[Long] = NotAssigned, desc: Option[String], note: Option[String],  theme: Theme, choices: Seq[Choice] = Nil) {
-  import libs.json.Json
-
-  def toJson() = Json.toJson(Map(
-    "id" -> Json.toJson(id.get),
-    "desc" -> Json.toJson(desc.getOrElse("--")),
-    "note" -> Json.toJson(note.getOrElse("")),
-    "choices" -> Json.toJson(
-      choices.map{ c =>
-        Json.toJson(Map(
-          "title" -> Json.toJson(c.title),
-          "id" -> Json.toJson(c.id.get),
-          "correct" -> Json.toJson(c.correct.getOrElse(false)),
-          "note" -> Json.toJson(c.note.getOrElse("")),
-          "questionId" -> Json.toJson(c.questionId)
-        ))
-      }
-    )
-  ))
 
 }

@@ -44,3 +44,14 @@ GET     /api/q/:id                  controllers.Questions.show(id:Long)
 #POST    /api/q                      controllers.Questions.save
 #PUT     /api/q/:id                  controllers.Questions.update(id:Long)
 DELETE  /api/q/:id                  controllers.Questions.delete(id:Long)
+
+GET     /api/qc/:id                  controllers.Questions.questionComment(id:Long)
+
+# Exams
+GET     /exams                      controllers.Exams.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+GET     /exams/new                  controllers.Exams.create
+GET     /exams/:id                  controllers.Exams.edit(id:Long)
+POST    /exams/:id                  controllers.Exams.update(id:Long)
+POST    /exams                      controllers.Exams.save
+POST    /exams/:id/delete           controllers.Exams.delete(id:Long)
+    
