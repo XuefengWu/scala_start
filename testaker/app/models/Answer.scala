@@ -6,9 +6,13 @@ import play.api.db._
 import play.api.Play.current
 
 
-case class Answer(id: Pk[Long] = NotAssigned, nodeId: Long = 0.toLong, questionId: Long, choiceId: Long, examId: Long) {
+case class Answer(id: Pk[Long] = NotAssigned, nodeId: Long = 0.toLong, questionId: Long, choiceId: Long, examId: Long,note:Option[String]) {
   def create() {
     Answer.create(this)
+  }
+  
+  def update(){
+    Answer.update(id.get,this)
   }
 }
 
@@ -18,8 +22,9 @@ object Answer {
       get[Long]("answer.node_id") ~
       get[Long]("answer.question_id") ~
       get[Long]("answer.choice_id") ~
-      get[Long]("answer.exam_id") map {
-      case id ~ nodeId ~ questionId ~ choiceId ~ examId => Answer(id, nodeId, questionId, choiceId, examId)
+      get[Long]("answer.exam_id")~
+      get[Option[String]]("answer.note")map {
+      case id ~ nodeId ~ questionId ~ choiceId ~ examId~note => Answer(id, nodeId, questionId, choiceId, examId,note)
     }
   }
 
@@ -80,10 +85,11 @@ object Answer {
     }
 
   }
-
+  
+  
   def findAnswerByQuestion(questionId: Long, examId: Long) = DB.withConnection {
     implicit connection =>
-      SQL("select * from answer where  question_id = {question_id} and exam_id = {exam_id}").on(
+      SQL("select * from answer where question_id = {question_id} and exam_id = {exam_id}").on(
         'question_id -> questionId,
         'exam_id -> examId
       ).as(simple.singleOpt)
@@ -96,11 +102,12 @@ object Answer {
 
         if (answer.isEmpty) {
           val nodeId = Node().create()
-          SQL("insert into answer (node_id,question_id,choice_id,exam_id) values ({node_id},{question_id},{choice_id},{exam_id})").on(
+          SQL("insert into answer (node_id,question_id,choice_id,exam_id,note) values ({node_id},{question_id},{choice_id},{exam_id},{note})").on(
             'node_id -> nodeId,
             'question_id -> v.questionId,
             'choice_id -> v.choiceId,
-            'exam_id -> v.examId
+            'exam_id -> v.examId,
+            'note -> v.note
           ).executeUpdate()
         }
     }
@@ -129,18 +136,19 @@ object Answer {
     DB.withConnection {
       implicit connection =>
         SQL(
-          "update answer set node_id = {node_id},question_id = {question_id},choice_id = {choice_id},exam_id = {exam_id} where id = {id}"
+          "update answer set node_id = {node_id},question_id = {question_id},choice_id = {choice_id},exam_id = {exam_id},note ={note} where id = {id}"
         ).on(
           'id -> id,
           'node_id -> v.nodeId,
           'question_id -> v.questionId,
           'choice_id -> v.choiceId,
+          'note -> v.note,
           'exam_id -> v.examId
         ).executeUpdate()
     }
   }
 
-
+  
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */

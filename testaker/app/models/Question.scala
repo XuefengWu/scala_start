@@ -84,10 +84,11 @@ object Question {
               SQL(
                 """
                   select *
-                  from question,theme,choice,examQuestion
+                  from question,theme,choice,examQuestion,exam
                   where question.theme_id = theme.id
                   and choice.question_id = question.id
                   and examQuestion.question_id = question.id
+                  and examQuestion.exam_id = exam.id
                   and examQuestion.id = {eqId}
                 """
               ).on('eqId -> eqId).as(withChoice *)

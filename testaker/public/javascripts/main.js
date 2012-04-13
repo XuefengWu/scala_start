@@ -58,7 +58,8 @@ window.ChoiceListItemView = Backbone.View.extend({
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
         $('.option-question-'+c.questionId).prop('disabled', true);
-        $('#answer-note-question-'+c.questionId).focus();
+        $('#answer-note-option-'+c.id).removeClass('hide').addClass('show');
+        $('#answer-note-option-'+c.id).focus();
         if(c.correct){
             console.log(c.title+" :Bingo!");
             $('#i-'+target.id).attr("class","icon-ok");

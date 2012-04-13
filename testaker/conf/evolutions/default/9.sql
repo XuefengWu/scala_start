@@ -8,6 +8,7 @@ CREATE TABLE answer (
 	question_id bigint,
 	choice_id bigint,
 	exam_id bigint,
+	note TEXT,
     constraint pk_answer primary key (id)
 );
 
