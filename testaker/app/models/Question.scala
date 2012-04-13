@@ -14,6 +14,7 @@ case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long,exam
     "id" -> Json.toJson(id.get),
     "desc" -> Json.toJson(description.getOrElse("--")),
     "note" -> Json.toJson(note.getOrElse("")),
+    "nodeId" -> Json.toJson(nodeId),
     "examId" -> Json.toJson(examId.getOrElse(0.toLong)), 
     "examQuestionId" -> Json.toJson(examQuestionId.getOrElse(0.toLong)),
     "choices" -> Json.toJson(
@@ -23,6 +24,7 @@ case class Question(id: Pk[Long] = NotAssigned, nodeId: Long, themeId: Long,exam
           "id" -> Json.toJson(c.id.get),
           "correct" -> Json.toJson(c.correct.getOrElse(false)),
           "note" -> Json.toJson(c.note.getOrElse("")),
+          "nodeId" -> Json.toJson(c.nodeId),
           "examId" -> Json.toJson(examId.getOrElse(0.toLong)),
           "examQuestionId" -> Json.toJson(examQuestionId.getOrElse(0.toLong)),
           "questionId" -> Json.toJson(c.questionId)

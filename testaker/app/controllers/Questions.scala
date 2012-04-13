@@ -66,6 +66,18 @@ object Questions extends Controller {
       }
   }
 
+  def comment = Action(parse.json) {
+    request =>
+      val body = request.body
+      val qNodeId = (body \ "qNodeId").as[Long]
+      val context = (body \ "context").as[String]
+      Comment.create(qNodeId,context).map{
+        c => Ok(c.toJson())
+      }.getOrElse{
+        Ok(Json.toJson(Map("error" -> "error")))
+      }      
+  }
+  
   def questionComment(id: Long) = Action {
     implicit request =>
       Ok(Json.toJson(
