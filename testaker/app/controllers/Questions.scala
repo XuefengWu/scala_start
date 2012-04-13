@@ -51,6 +51,9 @@ object Questions extends Controller {
             a =>
               if(a.choiceId == choiceId)
                 a.copy(note = Some(note)).update
+              else println("sorry, your answer choice is %d".format(choiceId))
+          }.getOrElse{
+            println("can not find anser questionId:%d,examId:%d".format(questionId,examId))
           }
           //save note to answer
           Ok("save note to answer")
