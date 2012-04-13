@@ -47,6 +47,8 @@ DELETE  /api/q/:id                  controllers.Questions.delete(id:Long)
 
 GET     /api/qc/:id                  controllers.Questions.questionComment(id:Long)
 
+POST     /api/qa                     controllers.Questions.answer
+
 # Exams
 GET     /exams                      controllers.Exams.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
 GET     /exams/new                  controllers.Exams.create

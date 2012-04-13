@@ -38,7 +38,7 @@ insert into examQuestion (id,exam_id,question_id) values (2,1,2);
 
 insert into choice (id,node_id,question_id,title,correct) values (  5,7,2,'狗',0);
 insert into choice (id,node_id,question_id,title,correct) values (  6,8,2,'猫',0);
-insert into choice (id,node_id,question_id,title,correct) values (  7,9,2,'兔子',1);
+insert into choice (id,node_id,question_id,title,note,correct) values (  7,9,2,'兔子','cute',1);
 insert into choice (id,node_id,question_id,title,note,correct) values (  8,10,2,'狮子','重口味',0);
 
 

@@ -1,3 +1,16 @@
+/** answer **/
+window.Answer = Backbone.Model.extend({
+  url: "/api/qa",
+
+  build: function(choice){
+    var change = {};
+     change['questionId'] = choice.questionId;
+     change['choiceId'] = choice.id;
+     change['examId'] = choice.examId;
+     this.set(change);
+  }
+});
+
 /**  question ***/
 
 window.Choice = Backbone.Model.extend();
@@ -37,7 +50,7 @@ window.ChoiceListItemView = Backbone.View.extend({
 
     events:{
         "change input":"change",
-        "change textarea":"change"
+        "change textarea":"updateNote"
     },
 
     change:function (event) {
@@ -52,6 +65,24 @@ window.ChoiceListItemView = Backbone.View.extend({
         }else{
             $('#i-'+target.id).attr("class","icon-remove");
         }
+        var answer = new Answer();
+         answer.build(c);
+         answer.save();
+        // You could change your model on the spot, like this:
+        // var change = {};
+        // change[target.name] = target.value;
+        // this.model.set(change);
+    },
+
+    updateNote:function (event) {
+        var target = event.target;
+        console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+        var answer = new Answer();
+        answer.build(this.model.toJSON());
+        var change = {};
+        change['note'] = target.value;
+        answer.set(change);
+        answer.save();
         // You could change your model on the spot, like this:
         // var change = {};
         // change[target.name] = target.value;
@@ -83,7 +114,6 @@ window.QuestionView = Backbone.View.extend({
         var html = $(this.el).html(this.template(q));
         this.choiceListView = new ChoiceListView({model:q.choices});
         html.append(this.choiceListView.render().el);
-        html.append("<input type='text' class='span3' placeholder='Type something…' id='answer-note-question-"+q.id+"'>");
         return this;
     },
 
@@ -203,8 +233,7 @@ window.ChoiceDetailListItemView = Backbone.View.extend({
     },
 
     events:{
-        "change input":"change",
-        "change textarea":"change"
+        "change input":"change"
     },
 
     change:function (event) {
@@ -222,7 +251,6 @@ window.ChoiceDetailListItemView = Backbone.View.extend({
         // change[target.name] = target.value;
         // this.model.set(change);
     }
-
 });
 
 
@@ -267,13 +295,7 @@ window.QCommentCollectionView = Backbone.View.extend({
     tagName: "ul",
 
     render: function(){
-        console.log("QCommentCollectionView:");
-        console.log(this.model);
-        console.log(this.model.models);
-        console.log("render each model");
         _.each(this.model.models, function (comment) {
-            console.log("render:");
-            console.log(comment);
             $(this.el).append(new QCommentCollectionItemView({model:comment}).render().el);
         }, this);
         return this;
