@@ -11,6 +11,17 @@ window.Answer = Backbone.Model.extend({
   }
 });
 
+window.AnswerNote = Backbone.Model.extend({
+    url: "/api/qa",
+
+    build: function(question){
+        var change = {};
+        change['questionId'] = question.id;
+        change['examId'] = question.examId;
+        this.set(change);
+    }
+});
+
 /**  question ***/
 
 window.Choice = Backbone.Model.extend();
@@ -49,8 +60,7 @@ window.ChoiceListItemView = Backbone.View.extend({
     },
 
     events:{
-        "change input":"change",
-        "change textarea":"updateNote"
+        "change input":"change"
     },
 
     change:function (event) {
@@ -58,8 +68,8 @@ window.ChoiceListItemView = Backbone.View.extend({
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
         $('.option-question-'+c.questionId).prop('disabled', true);
-        $('#answer-note-option-'+c.id).removeClass('hide').addClass('show');
-        $('#answer-note-option-'+c.id).focus();
+        $('#answer-note-'+c.questionId).removeClass('hide').addClass('show');
+        $('#answer-note-'+c.id).focus();
         if(c.correct){
             console.log(c.title+" :Bingo!");
             $('#i-'+target.id).attr("class","icon-ok");
@@ -69,21 +79,6 @@ window.ChoiceListItemView = Backbone.View.extend({
         var answer = new Answer();
          answer.build(c);
          answer.save();
-        // You could change your model on the spot, like this:
-        // var change = {};
-        // change[target.name] = target.value;
-        // this.model.set(change);
-    },
-
-    updateNote:function (event) {
-        var target = event.target;
-        console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
-        var answer = new Answer();
-        answer.build(this.model.toJSON());
-        var change = {};
-        change['note'] = target.value;
-        answer.set(change);
-        answer.save();
         // You could change your model on the spot, like this:
         // var change = {};
         // change[target.name] = target.value;
@@ -110,12 +105,38 @@ window.QuestionView = Backbone.View.extend({
 
     template:_.template($('#tpl-question-item').html()),
 
+    events:{
+        "change textarea":"updateNote"
+    },
+
     render:function (eventName) {
         var q =  this.model.toJSON();
         var html = $(this.el).html(this.template(q));
         this.choiceListView = new ChoiceListView({model:q.choices});
         html.append(this.choiceListView.render().el);
+        var answerNote = "<textarea class='input-xlarge hide'  placeholder='Type something...' id='answer-note-"+q.id+"'></textarea>"
+        if(q.answerChoiceId){
+            answerNote = "<textarea class='input-xlarge'  placeholder='Type something...' id='answer-note-"+q.id+"'>"+q.answerNote+"</textarea>"
+        }
+        html.append(answerNote);
         return this;
+    },
+
+
+    updateNote:function (event) {
+        var target = event.target;
+        console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+        var answerNote = new AnswerNote();
+        answerNote.build(this.model.toJSON());
+        var change = {};
+        change['note'] = target.value;
+        answerNote.set(change);
+        answerNote.save();
+
+        // You could change your model on the spot, like this:
+        // var change = {};
+        // change[target.name] = target.value;
+        // this.model.set(change);
     },
 
     close:function () {

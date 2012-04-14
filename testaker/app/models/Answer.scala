@@ -6,11 +6,11 @@ import play.api.db._
 import play.api.Play.current
 
 
-case class Answer(id: Pk[Long] = NotAssigned, nodeId: Long = 0.toLong, questionId: Long, choiceId: Long, examId: Long,note:Option[String]) {
-  def create() {
+case class Answer(id: Pk[Long] = NotAssigned, nodeId: Long = 0.toLong, questionId: Long, choiceId: Option[Long], examId: Long,note:Option[String]) {
+  def create() = {
     Answer.create(this)
   }
-  
+
   def update(){
     Answer.update(id.get,this)
   }
@@ -21,7 +21,7 @@ object Answer {
     get[Pk[Long]]("answer.id") ~
       get[Long]("answer.node_id") ~
       get[Long]("answer.question_id") ~
-      get[Long]("answer.choice_id") ~
+      get[Option[Long]]("answer.choice_id") ~
       get[Long]("answer.exam_id")~
       get[Option[String]]("answer.note")map {
       case id ~ nodeId ~ questionId ~ choiceId ~ examId~note => Answer(id, nodeId, questionId, choiceId, examId,note)
@@ -85,8 +85,7 @@ object Answer {
     }
 
   }
-  
-  
+
   def findAnswerByQuestion(questionId: Long, examId: Long) = DB.withConnection {
     implicit connection =>
       SQL("select * from answer where question_id = {question_id} and exam_id = {exam_id}").on(
@@ -94,13 +93,21 @@ object Answer {
         'exam_id -> examId
       ).as(simple.singleOpt)
   }
+  
+  def getAnswerByQuestion(questionId: Long, examId: Long):Answer = {
+    findAnswerByQuestion(questionId, examId).getOrElse{
+      val id = Answer(NotAssigned, 0.toLong,questionId,None,examId,None).create()
+      findById(id).get
+    }
 
-  def create(v: Answer) {
+  }
+
+  def create(v: Answer):Long = {
     DB.withConnection {
       implicit connection =>
-        val answer = findAnswerByQuestion(v.questionId, v.examId)
-
-        if (answer.isEmpty) {
+        findAnswerByQuestion(v.questionId, v.examId).map{
+          a => a.id.get
+        }.getOrElse{
           val nodeId = Node().create()
           SQL("insert into answer (node_id,question_id,choice_id,exam_id,note) values ({node_id},{question_id},{choice_id},{exam_id},{note})").on(
             'node_id -> nodeId,
@@ -109,6 +116,8 @@ object Answer {
             'exam_id -> v.examId,
             'note -> v.note
           ).executeUpdate()
+          val id:Long = SQL("SELECT LAST_INSERT_ID()").as(scalar[Long].single)
+          id
         }
     }
   }
