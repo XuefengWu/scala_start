@@ -38,34 +38,42 @@ object Questions extends Controller {
       }.getOrElse(NotFound)
   }
 
+
   def answer = Action(parse.json) {
     request =>
       val body = request.body
       val questionId = (body \ "questionId").as[Long]
-      val choiceId = (body \ "choiceId").as[Long]
       val examId = (body \ "examId").as[Long]
 
+      val answer = Answer.getAnswerByQuestion(questionId, examId)
+
       (body \ "note").asOpt[String].map {
-        note =>
-          Answer.findAnswerByQuestion(questionId, examId).map {
-            a =>
-              if(a.choiceId == choiceId)
-                a.copy(note = Some(note)).update
-              else println("sorry, your answer choice is %d".format(choiceId))
-          }.getOrElse{
-            println("can not find anser questionId:%d,examId:%d".format(questionId,examId))
-          }
+        note => answer.copy(note = Some(note)).update
           //save note to answer
           Ok("save note to answer")
       }.getOrElse {
         //add answer
-
-        //Answer(id:Pk[Long] = NotAssigned, nodeId:Long,questionId:Long,choiceId:Long,examId:Long)
-        Answer(NotAssigned, 0.toLong, questionId, choiceId, examId, None).create()
+        (body \ "choiceId").asOpt[Long].map{
+          choiceId => answer.copy(choiceId = Some(choiceId)).update
+        }.getOrElse{
+          println("can not add answer questionId:%d,examId:%d".format(questionId,examId))
+        }
         Ok("add new answer")
       }
   }
 
+  def comment = Action(parse.json) {
+    request =>
+      val body = request.body
+      val qNodeId = (body \ "qNodeId").as[Long]
+      val context = (body \ "context").as[String]
+      Comment.create(qNodeId,context).map{
+        c => Ok(c.toJson())
+      }.getOrElse{
+        Ok(Json.toJson(Map("error" -> "error")))
+      }      
+  }
+  
   def questionComment(id: Long) = Action {
     implicit request =>
       Ok(Json.toJson(

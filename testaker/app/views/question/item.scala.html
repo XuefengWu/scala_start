@@ -3,12 +3,11 @@
 </script>
 
 <script type="text/template" id="tpl-question-choice">
-    <td id="i-optionsRadios-<%= id %>" style="width:14px" ></td>
+    <td id="i-optionsRadios-<%= id %>" style="width:14px" <% if(answerChoiceId && correct){ %> class="icon-ok" <%}%>></td>
     <td>
         <label class="radio">
-            <input type="radio" name="optionsRadios" id="optionsRadios-<%= id %>" value="option-<%= id %>" class="option-question-<%= questionId %>">
+            <input type="radio" name="optionsRadios-<%= questionId %>" id="optionsRadios-<%= id %>" value="option-<%= id %>" class="option-question-<%= questionId %>"   <% if(answerChoiceId){ %> disabled <%}%> <% if(answerChoiceId == id){ %> checked <%}%>>
             <%= title %>
         </label>
-        <textarea class='input-xlarge hide'  placeholder='Type something...' id='answer-note-option-<%= id %>'></textarea>
     </td>
 </script>

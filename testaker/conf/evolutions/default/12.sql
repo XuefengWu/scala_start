@@ -58,7 +58,7 @@ insert into comment (id,node_id,replyTo_id,context) values (4,14,6,"这个问题
 delete from comment;
 delete from examQuestion;
 delete from choice;
-delete from qTag;
+delete from qtag;
 delete from question;
 delete from tag;
 delete from exam;

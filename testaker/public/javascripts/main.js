@@ -11,6 +11,17 @@ window.Answer = Backbone.Model.extend({
   }
 });
 
+window.AnswerNote = Backbone.Model.extend({
+    url: "/api/qa",
+
+    build: function(question){
+        var change = {};
+        change['questionId'] = question.id;
+        change['examId'] = question.examId;
+        this.set(change);
+    }
+});
+
 /**  question ***/
 
 window.Choice = Backbone.Model.extend();
@@ -49,8 +60,7 @@ window.ChoiceListItemView = Backbone.View.extend({
     },
 
     events:{
-        "change input":"change",
-        "change textarea":"updateNote"
+        "change input":"change"
     },
 
     change:function (event) {
@@ -58,8 +68,8 @@ window.ChoiceListItemView = Backbone.View.extend({
         var target = event.target;
         console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
         $('.option-question-'+c.questionId).prop('disabled', true);
-        $('#answer-note-option-'+c.id).removeClass('hide').addClass('show');
-        $('#answer-note-option-'+c.id).focus();
+        $('#answer-note-'+c.questionId).removeClass('hide').addClass('show');
+        $('#answer-note-'+c.id).focus();
         if(c.correct){
             console.log(c.title+" :Bingo!");
             $('#i-'+target.id).attr("class","icon-ok");
@@ -69,21 +79,6 @@ window.ChoiceListItemView = Backbone.View.extend({
         var answer = new Answer();
          answer.build(c);
          answer.save();
-        // You could change your model on the spot, like this:
-        // var change = {};
-        // change[target.name] = target.value;
-        // this.model.set(change);
-    },
-
-    updateNote:function (event) {
-        var target = event.target;
-        console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
-        var answer = new Answer();
-        answer.build(this.model.toJSON());
-        var change = {};
-        change['note'] = target.value;
-        answer.set(change);
-        answer.save();
         // You could change your model on the spot, like this:
         // var change = {};
         // change[target.name] = target.value;
@@ -110,12 +105,38 @@ window.QuestionView = Backbone.View.extend({
 
     template:_.template($('#tpl-question-item').html()),
 
+    events:{
+        "change textarea":"updateNote"
+    },
+
     render:function (eventName) {
         var q =  this.model.toJSON();
         var html = $(this.el).html(this.template(q));
         this.choiceListView = new ChoiceListView({model:q.choices});
         html.append(this.choiceListView.render().el);
+        var answerNote = "<textarea class='input-xlarge hide'  placeholder='Type something...' id='answer-note-"+q.id+"'></textarea>"
+        if(q.answerChoiceId){
+            answerNote = "<textarea class='input-xlarge'  placeholder='Type something...' id='answer-note-"+q.id+"'>"+q.answerNote+"</textarea>"
+        }
+        html.append(answerNote);
         return this;
+    },
+
+
+    updateNote:function (event) {
+        var target = event.target;
+        console.log('changing ' + target.id + ' from: ' + target.defaultValue + ' to: ' + target.value);
+        var answerNote = new AnswerNote();
+        answerNote.build(this.model.toJSON());
+        var change = {};
+        change['note'] = target.value;
+        answerNote.set(change);
+        answerNote.save();
+
+        // You could change your model on the spot, like this:
+        // var change = {};
+        // change[target.name] = target.value;
+        // this.model.set(change);
     },
 
     close:function () {
@@ -176,7 +197,7 @@ window.QuestionDetail = Backbone.Model.extend({
 
 window.QuestionDetailView = Backbone.View.extend({
 
-    template:_.template($('#tpl-detail-question-item').html()),
+    template:_.template($('#tpl-detail-question').html()),
 
     tagName:"div",
 
@@ -257,19 +278,55 @@ window.ChoiceDetailListItemView = Backbone.View.extend({
 
 /**  question comments ***/
 window.QComment = Backbone.Model.extend({
-  urlRoot:'api/qc/',
+  url:'api/qc',
 
-  initialize:function () {
-        this.qcs = new QCommentCollection();
-        this.qcs.url = '../api/qc/' + this.id;
+    build: function(q){
+        console.log("build qc");
+        console.log(q);
+        var change = {};
+        change['qId'] = q.id;
+        change['qNodeId'] = q.nodeId;
+        this.set(change);
     }
+});
 
+window.QCommentView = Backbone.View.extend({
+    template:_.template($('#tpl-detail-question-comment-input').html()),
+
+    render:function (eventName) {
+        var question = this.model;
+        console.log("question node id is "+question.toJSON().nodeId);
+        $(this.el).html(this.template(question));
+        return this;
+    },
+    events:{
+        "click  button":"saveComment"
+    },
+
+    saveComment:function (event) {
+        var q = this.model.toJSON();
+        var qcInput = $('#question-comment-input-'+q.id);
+        var v = qcInput.val();
+        qcInput.val('').focus();
+
+        var qc = new QComment();
+        qc.build(this.model.toJSON());
+        var change = {};
+        change['context'] = v;
+        change['nodeId'] = 0;
+        qc.set(change);
+        qc.save();
+
+        var qcItemView = new QCommentCollectionItemView({model:qc});
+        $('#qComments_list').prepend(qcItemView.render().el);
+
+    }
 });
 
 window.QCommentCollection = Backbone.Collection.extend({
     model:QComment,
 
-     url: 'api/qc/',
+     url: 'api/qc',
 
        findByQuestion:function (args) {
             // TODO: Modify service to include firstName in search
@@ -295,6 +352,8 @@ window.QCommentCollectionView = Backbone.View.extend({
 
     tagName: "ul",
 
+    id:"qComments_list",
+
     render: function(){
         _.each(this.model.models, function (comment) {
             $(this.el).append(new QCommentCollectionItemView({model:comment}).render().el);
@@ -309,7 +368,7 @@ window.QCommentCollectionItemView = Backbone.View.extend({
 
     tagName:"li",
 
-    template:_.template($('#tpl-detail-question-comment').html()),
+    template:_.template($('#tpl-detail-question-comment-item').html()),
 
     render:function (eventName) {
         var c = this.model.toJSON();
@@ -332,6 +391,10 @@ window.QCommentCollectionItemView = Backbone.View.extend({
     }
 
 });
+
+/** question comment input**/
+
+
 var AppRouter = Backbone.Router.extend({
 
     routes:{
@@ -349,13 +412,18 @@ var AppRouter = Backbone.Router.extend({
     questionDetails:function (id) {
         this.questionDetail = new QuestionDetail({id:id});
         this.questionDetail.fetch({
-            success:function(data){
-                this.questionDetailView = new QuestionDetailView({model:data});
+            success:function(question){
+                this.questionDetailView = new QuestionDetailView({model:question});
                 $('#content').html(this.questionDetailView.render().el);
+                var questionWell = $('#detail-question-desc-'+id).parent().parent();
+                this.qCommentView = new QCommentView({model:question});
+                questionWell.append(this.qCommentView.render().el);
+                $('#question-comment-input-'+id).focus();
+
                 this.qCommentList = new QCommentCollection();
-                this.qCommentList.findByQuestion({id:id,success:function(data){
-                    this.qCommentListView = new QCommentCollectionView({model:data});
-                    $('#detail-question-desc-'+id).parent().parent().append(this.qCommentListView.render().el);
+                this.qCommentList.findByQuestion({id:id,success:function(qcomments){
+                    this.qCommentListView = new QCommentCollectionView({model:qcomments});
+                    questionWell.append(this.qCommentListView.render().el);
                 }});
 
             }

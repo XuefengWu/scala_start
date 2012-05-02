@@ -2,14 +2,14 @@
 
 # --- !Ups
 
-CREATE TABLE examquestion (
+CREATE TABLE examQuestion (
     id bigint NOT NULL auto_increment,
     exam_id bigint,
 	question_id bigint
-    ,constraint pk_examquestion primary key (id)
+    ,constraint pk_examQuestion primary key (id)
 );
 
 
 # --- !Downs
-DROP TABLE examquestion;
+DROP TABLE examQuestion;
     
