@@ -5,3 +5,7 @@ https://github.com/scalatra/scalatra
 http://www.decodified.com/scala/collections-api.xml
 
 Play Scala
+
+In China:
+add repo ip in /etc/hosts
+107.20.116.31 repo.typesafe.com
