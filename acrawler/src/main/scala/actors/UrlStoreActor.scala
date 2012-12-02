@@ -28,11 +28,11 @@ class UrlStoreActor extends Actor {
         }
       })
       unsaved.foreach(lnk => {
-        println(lnk)
         linksColl.insert(new BasicDBObject("url", lnk))
       })
       //start new url
-      val unloaded = unsaved.filterNot(lnk => {
+      println("unsaved:" + unsaved.size)
+      val unloaded = results.filterNot(lnk => {
         val cursor = loadedLinksColl.find(new BasicDBObject("url", lnk))
         try {
           cursor.hasNext()
@@ -40,6 +40,7 @@ class UrlStoreActor extends Actor {
           cursor.close()
         }
       })
+      println("unloaded:" + unloaded.size)
       unloaded.foreach(loadRouter ! Url(_))
     }
     case Loaded(url: String) => {

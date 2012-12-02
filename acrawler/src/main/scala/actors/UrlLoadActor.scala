@@ -2,6 +2,7 @@ package actors
 
 import akka.actor.{Props,Actor}
 import com.ning.http.client.{AsyncHttpClient,Response}
+import org.apache.commons.io.FileUtils
 import java.io.File
 
 class UrlLoadActor extends Actor {
@@ -10,9 +11,10 @@ class UrlLoadActor extends Actor {
   
   val asyncHttpClient = new AsyncHttpClient()
   def load(url:String):Array[Byte] = {
-   println(url)
-   if(new File(util.UrlFile.buildFilePath(url)).exists()){
-     
+    println("start load:\t"+url)
+   val urlFile = new File(util.UrlFile.buildFilePath(url))
+   if(urlFile.exists()){
+       FileUtils.readFileToByteArray(urlFile)
    } else {
 	   val f = asyncHttpClient.prepareGet(url).execute()
 	   f.get().getResponseBodyAsBytes()

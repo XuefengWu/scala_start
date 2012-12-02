@@ -7,7 +7,12 @@ class PageParseActor extends Actor {
   val storeActor = context.actorOf(Props[UrlStoreActor])
 
   def receive = {
-    case Contents(url: String, contents: String) => storeActor ! Urls(getLinks(url, contents))
+    case Contents(url: String, contents: String) => {
+      print("parse:\t"+url)
+      val urls = getLinks(url, contents)
+      println(":"+urls.size)
+      storeActor ! Urls(urls)
+    }
   }
 
   def getLinks(url: String, content: String) = {
