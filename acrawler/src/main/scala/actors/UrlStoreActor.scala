@@ -9,8 +9,9 @@ import com.mongodb._
 
 class UrlStoreActor extends Actor {
 
-  val loadRouter = context.actorOf(Props[UrlLoadActor].withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)), name = "urlLoadActorRouter")
-
+  //val loadRouter = context.actorOf(Props[UrlLoadActor].withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)), name = "urlLoadActorRouter")
+  val loadRouter = context.actorOf(Props[UrlLoadActor])	
+	
   val db = new MongoClient().getDB("crawler")
   val linksColl = db.getCollection("linksCollection")
   val loadedLinksColl = db.getCollection("loadedLinksColl")
@@ -42,10 +43,10 @@ class UrlStoreActor extends Actor {
       })
       println("unloaded:" + unloaded.size)
       unloaded.foreach(loadRouter ! Url(_))
+ 
     }
     case Loaded(url: String) => {
-      val doc = new BasicDBObject("url", url)
-      loadedLinksColl.insert(doc)
+      loadedLinksColl.insert(new BasicDBObject("url", url))
     }
   }
 

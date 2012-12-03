@@ -11,9 +11,18 @@ class DataActor extends Actor {
   
   def receive = {
     case Data(url:String,bytes: Array[Byte]) => {
-      FileUtils.writeByteArrayToFile(new File(util.UrlFile.buildFilePath(url)), bytes)
-      parserActor ! Contents(url,Source.fromBytes(bytes).getLines().mkString("\n"))
+      val urlFile = new File(util.UrlFile.buildFilePath(url))
+      if(!urlFile.exists()){
+    	  FileUtils.writeByteArrayToFile(urlFile, bytes)
+      }
+      
+      if(isHtml(url)) {
+    	  parserActor ! Contents(url,Source.fromBytes(bytes).getLines().mkString("\n"))
+      }
+      
     }
   }
+  
+  private def isHtml(url:String) = !(url.endsWith("gif") || url.endsWith("png") || url.endsWith("jpg"))
  
 }

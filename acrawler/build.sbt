@@ -21,3 +21,6 @@ libraryDependencies ++= List(
 
 libraryDependencies += "org.mongodb" % "mongo-java-driver" % "2.10.0"
                        
+libraryDependencies += "commons-httpclient" % "commons-httpclient" % "3.1"
+            
+                                   

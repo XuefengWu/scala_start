@@ -8,9 +8,7 @@ class PageParseActor extends Actor {
 
   def receive = {
     case Contents(url: String, contents: String) => {
-      print("parse:\t"+url)
       val urls = getLinks(url, contents)
-      println(":"+urls.size)
       storeActor ! Urls(urls)
     }
   }
@@ -93,7 +91,6 @@ class PageParseActor extends Actor {
 		"""
     def imgs = imgPattern.r.findAllIn(content).map { imgTag =>
       val im = "/[^'\"]+".r.findFirstIn(imgTag).getOrElse("")
-      im
       if (im.startsWith("//")) {
         "http:" + im
       } else {

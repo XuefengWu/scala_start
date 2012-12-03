@@ -4,6 +4,6 @@ object Conf {
 
   val  baseDir = "D:/crawler-data"
     
-  val nrOfUrlLoader = 50
+  val nrOfUrlLoader = 4
   
 }
