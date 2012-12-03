@@ -10,14 +10,18 @@ import com.mongodb._
 class UrlStoreActor extends Actor {
 
   //val loadRouter = context.actorOf(Props[UrlLoadActor].withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)), name = "urlLoadActorRouter")
-  val loadRouter = context.actorOf(Props[UrlLoadActor])
+  val loadRouter = context.actorOf(Props[UrlLoadActor])	
+	
+  val db = new MongoClient().getDB("crawler")
+  val linksColl = db.getCollection("linksCollection")
+  val loadedLinksColl = db.getCollection("loadedLinksColl")
 
   def receive = {
     case Urls(links: Seq[String]) => {
       val results = Set[String](links: _*)
       //save to DB
       val unsaved = results.filterNot(lnk => {
-        val cursor = UrlStoreActor.linksColl.find(new BasicDBObject("url", lnk))
+        val cursor = linksColl.find(new BasicDBObject("url", lnk))
         try {
           cursor.hasNext()
         } finally {
@@ -25,12 +29,12 @@ class UrlStoreActor extends Actor {
         }
       })
       unsaved.foreach(lnk => {
-        UrlStoreActor.linksColl.insert(new BasicDBObject("url", lnk))
+        linksColl.insert(new BasicDBObject("url", lnk))
       })
       //start new url
       println("unsaved:" + unsaved.size)
       val unloaded = results.filterNot(lnk => {
-        val cursor = UrlStoreActor.loadedLinksColl.find(new BasicDBObject("url", lnk))
+        val cursor = loadedLinksColl.find(new BasicDBObject("url", lnk))
         try {
           cursor.hasNext()
         } finally {
@@ -39,19 +43,11 @@ class UrlStoreActor extends Actor {
       })
       println("unloaded:" + unloaded.size)
       unloaded.foreach(loadRouter ! Url(_))
-
+ 
     }
     case Loaded(url: String) => {
-      UrlStoreActor.loadedLinksColl.insert(new BasicDBObject("url", url))
+      loadedLinksColl.insert(new BasicDBObject("url", url))
     }
   }
-
-}
-
-object UrlStoreActor {
-
-  val db = new MongoClient().getDB("crawler")
-  val linksColl = db.getCollection("linksCollection")
-  val loadedLinksColl = db.getCollection("loadedLinksColl")
 
 }
