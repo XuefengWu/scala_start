@@ -5,9 +5,11 @@ import akka.actor.{ Props, Actor }
 class PageParseActor extends Actor {
 
   val storeActor = context.actorOf(Props[UrlStoreActor])
+  val logActor = context.actorOf(Props[LogActor])
 
   def receive = {
     case Contents(url: String, contents: String) => {
+      logActor ! LogStart(this)
       val urls = getLinks(url, contents)
       storeActor ! Urls(urls)
     }
