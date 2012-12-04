@@ -21,17 +21,13 @@ class DataActor extends Actor {
         val os = new FileOutputStream(urlFile)
         org.apache.commons.io.IOUtils.copy(is, os)
         os.close()
-
-        if (isHtml(url)) {
-          parserActor ! Contents(url, Source.fromInputStream(is).getLines().mkString("\n"))
-        } else {
-          println(url + " is not a html")
-        }
-        is.close()
-      } else {
-        println(this + ":" + url + " exists")
       }
-
+      if (isHtml(url)) {
+        parserActor ! Contents(url, Source.fromInputStream(is).getLines().mkString("\n"))
+      } else {
+        println(url + " is not a html")
+      }
+      is.close()
     }
   }
 

@@ -4,10 +4,11 @@ import akka.actor.{ Props, Actor }
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.InputStream
-
 import org.apache.commons.httpclient.HttpClient
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager
 import org.apache.commons.httpclient.methods.GetMethod
+import org.apache.commons.io.IOUtils
+import java.io.FileInputStream
 
 class UrlLoadActor extends Actor {
 
@@ -31,8 +32,7 @@ class UrlLoadActor extends Actor {
       val urlFile = new File(util.UrlFile.buildFilePath(url))
       println(this + ": " + url + ": " + urlFile.exists())
       if (urlFile.exists()) {
-        storeActor ! Loaded(url)
-        storeActor ! Restart
+        dataActor ! Data(url, new FileInputStream(urlFile))
       } else {
         storeActor ! Loaded(url)
         if (url.contains(Main.domain) && !url.contains("=http://")) {
