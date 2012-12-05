@@ -5,51 +5,78 @@ import akka.routing.RoundRobinRouter
 import scala.collection.mutable.ListBuffer
 import scala.collection.convert.WrapAsJava._
 import scala.util.control.Breaks._
-import scala.collection.mutable.HashSet
+import com.mongodb._
 
-object UrlStoreActor  {
-  val all = scala.collection.mutable.HashSet[String]().par
-  val loaded = scala.collection.mutable.HashSet[String]().par
-}
 class UrlStoreActor extends Actor {
 
-  import UrlStoreActor._
-  
-  val loadRouter = context.actorOf(Props[UrlLoadActor])
-  val logActor = context.actorOf(Props[LogActor])
+  val loadRouter = context.actorOf(Props(new UrlLoadActor(self)).withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)))
+  //val loadRouter = context.actorOf(Props(new UrlLoadActor(self)))
+  val logActor = context.actorOf(Props[LogActor].withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)), name = "urlLoadActorRouter")
+
+  val db = new MongoClient("localhost", new MongoClientOptions.Builder().cursorFinalizerEnabled(false).build()).getDB("crawler")
+  val linksColl = db.getCollection("linksCollection")
+  val loadedLinksColl = db.getCollection("loadedLinksColl")
 
   def receive = {
-    case Urls(links: Seq[String]) => {
+    case Result(links: Seq[String]) => {
       logActor ! LogStart(this)
-
-      all ++= links
-
-      val unloaded = links.filterNot(p => loaded.contains(p))
-
-      println("all:%s, unloaded:%s".format(all.size, unloaded.size))
-
+      println(this + ":" + links.size)
+      val results = Set[String](links: _*)
+      //save to DB
+      val unsaved = results.filterNot(lnk => {
+        val cursor = linksColl.find(new BasicDBObject("url", lnk))
+        try {
+          cursor.hasNext()
+        } finally {
+          cursor.close()
+        }
+      })
+      unsaved.foreach(lnk => {
+        linksColl.insert(new BasicDBObject("url", lnk))
+      })
+      //start new url
+      val unloaded = results.filterNot(lnk => {
+        val cursor = loadedLinksColl.find(new BasicDBObject("url", lnk))
+        try {
+          cursor.hasNext()
+        } finally {
+          cursor.close()
+        }
+      })
+      println("unsaved:%s, unloaded:%s".format(unsaved.size, unloaded.size))
       unloaded.foreach(loadRouter ! Url(_))
+
       if (unloaded.isEmpty) {
         self ! Restart
       }
     }
     case Loaded(url: String) => {
       logActor ! LogStart(this)
-
-      loaded += url
-
+      loadedLinksColl.insert(new BasicDBObject("url", url))
     }
     case Restart => {
       import scala.util.control.Breaks._
       logActor ! LogStart(this)
-      breakable {
-        all.foreach { f =>
-          if (loaded.contains(f)) {
-            loadRouter ! Url(f)
-            self ! Loaded(f)
-            break
+      val cursor = linksColl.find()
+      try {
+        breakable {
+          while (cursor.hasNext()) {
+            val url = cursor.next().get("url").toString()
+            val loadedCursor = loadedLinksColl.find(new BasicDBObject("url", url))
+            val loaded = loadedLinksColl.count()
+            try {
+              if (!loadedCursor.hasNext()) {
+                println("saved links size:%s, loaded size: %s ".format(cursor.size(), loaded))
+                loadRouter ! Url(url)
+                //break
+              }
+            } finally {
+              loadedCursor.close()
+            }
           }
         }
+      } finally {
+        cursor.close()
       }
     }
   }

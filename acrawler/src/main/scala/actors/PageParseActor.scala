@@ -1,17 +1,16 @@
 package actors
 
-import akka.actor.{ Props, Actor }
+import akka.actor.{ Props, Actor, ActorRef }
 
-class PageParseActor extends Actor {
+class PageParseActor(listener: ActorRef) extends Actor {
 
-  val storeActor = context.actorOf(Props[UrlStoreActor])
   val logActor = context.actorOf(Props[LogActor])
 
   def receive = {
     case Contents(url: String, contents: String) => {
       logActor ! LogStart(this)
       val urls = getLinks(url, contents)
-      storeActor ! Urls(urls)
+      listener ! Result(urls)
     }
   }
 

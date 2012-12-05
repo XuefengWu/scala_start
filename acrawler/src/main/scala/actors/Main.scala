@@ -12,6 +12,6 @@ object Main extends App {
   println(system.dispatchers.defaultGlobalDispatcher)
   val domain = "tutorialspoint.com"
 
-  system.actorOf(Props[UrlLoadActor]) ! Url("http://tutorialspoint.com")
+  system.actorOf(Props[UrlStoreActor]) ! Result(List("http://tutorialspoint.com"))
 
 }
