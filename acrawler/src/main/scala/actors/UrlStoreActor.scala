@@ -7,6 +7,9 @@ import scala.collection.convert.WrapAsJava._
 import scala.util.control.Breaks._
 import com.mongodb._
 
+object UrlStoreActor {
+  val started = scala.collection.mutable.HashSet[String]().par
+}
 class UrlStoreActor extends Actor {
 
   val loadRouter = context.actorOf(Props(new UrlLoadActor(self)).withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)))
@@ -56,6 +59,7 @@ class UrlStoreActor extends Actor {
     }
     case Restart => {
       import scala.util.control.Breaks._
+      println(this + ":" + Restart + "\t sender:" + sender.path)
       logActor ! LogStart(this)
       val cursor = linksColl.find()
       try {
@@ -65,8 +69,9 @@ class UrlStoreActor extends Actor {
             val loadedCursor = loadedLinksColl.find(new BasicDBObject("url", url))
             val loaded = loadedLinksColl.count()
             try {
-              if (!loadedCursor.hasNext()) {
-                println("saved links size:%s, loaded size: %s ".format(cursor.size(), loaded))
+              if (!loadedCursor.hasNext() && !UrlStoreActor.started.contains(url)) {
+                println("saved links size:%s, loaded size: %s, started: %s ".format(cursor.size(), loaded, UrlStoreActor.started.size))
+                UrlStoreActor.started += url
                 loadRouter ! Url(url)
                 //break
               }
