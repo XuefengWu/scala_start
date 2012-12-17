@@ -1,21 +1,13 @@
-package actors
+package util
 
-import akka.actor.{ Props, Actor, ActorRef }
+object PageParseUtil {
 
-class PageParseActor(listener: ActorRef) extends Actor {
-
-  val logActor = context.actorOf(Props[LogActor])
-
-  def receive = {
-    case Contents(url: String, contents: String) => {
-      logActor ! LogStart(this)
-      val urls = getLinks(url, contents)
-      listener ! Result(urls)
-    }
-  }
-
+  
+  
   def getLinks(url: String, content: String) = {
-
+	 
+    def isHtml(url: String) = !(url.endsWith("gif") || url.endsWith("png") || url.endsWith("jpg"))
+    
     def getUrlBase(url: String) = {
       val httpLength = 8
       if (url.lastIndexOf("/") < httpLength) {
@@ -98,8 +90,13 @@ class PageParseActor(listener: ActorRef) extends Actor {
         im
       }
     }
-
-    (links ++ imgs).map(getLinkFullPath(url, _))
+    if(isHtml(url)){
+    	(links ++ imgs).map(getLinkFullPath(url, _))
+    } else {
+      Nil
+    }
+    
   }
 
+  
 }

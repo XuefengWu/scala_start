@@ -2,19 +2,18 @@ package actors
 
 import akka.actor.{ Props, Actor }
 import akka.routing.RoundRobinRouter
-import scala.collection.mutable.ListBuffer
-import scala.collection.convert.WrapAsJava._
-import scala.util.control.Breaks._
 import com.mongodb._
+import scala.collection.convert.WrapAsJava._
 
 object UrlStoreActor {
-  val started = scala.collection.mutable.HashSet[String]().par
+  val started = new scala.collection.mutable.HashSet[String].par
+
 }
 class UrlStoreActor extends Actor {
 
-  val loadRouter = context.actorOf(Props(new UrlLoadActor(self)).withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)))
-  //val loadRouter = context.actorOf(Props(new UrlLoadActor(self)))
-  val logActor = context.actorOf(Props[LogActor].withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)), name = "urlLoadActorRouter")
+  val urlloadActor = context.actorOf(Props[UrlLoadActor])//.withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)))
+  //val urlloadActor = context.actorOf(Props(new UrlLoadActor(self)))
+  val logActor = context.actorOf(Props[LogActor]) //.withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)), name = "urlLoadActorRouter")
 
   val db = new MongoClient("localhost", new MongoClientOptions.Builder().cursorFinalizerEnabled(false).build()).getDB("crawler")
   val linksColl = db.getCollection("linksCollection")
@@ -23,67 +22,63 @@ class UrlStoreActor extends Actor {
   def receive = {
     case Result(links: Seq[String]) => {
       logActor ! LogStart(this)
-      println(this + ":" + links.size)
-      val results = Set[String](links: _*)
+      println(Thread.currentThread().getName()+"--"+this + ":" + links.size)
       //save to DB
-      val unsaved = results.filterNot(lnk => {
-        val cursor = linksColl.find(new BasicDBObject("url", lnk))
-        try {
-          cursor.hasNext()
-        } finally {
-          cursor.close()
-        }
-      })
-      unsaved.foreach(lnk => {
-        linksColl.insert(new BasicDBObject("url", lnk))
-      })
+      val unsaved = links.filterNot(p => UrlStoreActor.started.contains(p)) 
+      linksColl.insert(unsaved.map(new BasicDBObject("url", _)).toSeq)
+ 
       //start new url
-      val unloaded = results.filterNot(lnk => {
-        val cursor = loadedLinksColl.find(new BasicDBObject("url", lnk))
-        try {
-          cursor.hasNext()
-        } finally {
-          cursor.close()
-        }
-      })
-      println("unsaved:%s, unloaded:%s".format(unsaved.size, unloaded.size))
-      unloaded.foreach(loadRouter ! Url(_))
+      val unloaded = links.filterNot(p => UrlStoreActor.started.contains(p)) 
 
-      if (unloaded.isEmpty) {
-        self ! Restart
+      unloaded.foreach { url =>
+        urlloadActor ! Url(url)
+        UrlStoreActor.started += url
       }
+
     }
     case Loaded(url: String) => {
-      logActor ! LogStart(this)
       loadedLinksColl.insert(new BasicDBObject("url", url))
     }
     case Restart => {
+      val loaded = new java.util.HashSet[String]
+      val allLinks = new java.util.HashSet[String]
       import scala.util.control.Breaks._
-      println(this + ":" + Restart + "\t sender:" + sender.path)
+      println(this + ":  Restart \t sender:" + sender.path)
       logActor ! LogStart(this)
+      val loadedCursor = loadedLinksColl.find()
+      try {
+        while (loadedCursor.hasNext()) {
+          loaded.add(loadedCursor.next().get("url").toString())
+        }
+      } finally {
+        loadedCursor.close()
+      }
+      println("all loaded: %s ".format(loaded.size))
       val cursor = linksColl.find()
       try {
-        breakable {
-          while (cursor.hasNext()) {
-            val url = cursor.next().get("url").toString()
-            val loadedCursor = loadedLinksColl.find(new BasicDBObject("url", url))
-            val loaded = loadedLinksColl.count()
-            try {
-              if (!loadedCursor.hasNext() && !UrlStoreActor.started.contains(url)) {
-                println("saved links size:%s, loaded size: %s, started: %s ".format(cursor.size(), loaded, UrlStoreActor.started.size))
-                UrlStoreActor.started += url
-                loadRouter ! Url(url)
-                //break
-              }
-            } finally {
-              loadedCursor.close()
-            }
+        while (cursor.hasNext()) {
+
+          try {
+            allLinks.add(cursor.next().get("url").toString())
           }
         }
       } finally {
         cursor.close()
       }
+      println("all allLinks: %s ".format(allLinks.size))
+
+      val it = allLinks.iterator()
+      while (it.hasNext()) {
+        val url = it.next()
+        if (!loaded.contains(url) && !UrlStoreActor.started.contains(url)) {
+          UrlStoreActor.started += url
+          urlloadActor ! Url(url)
+          //println("UrlStoreActor.allLinks:"+UrlStoreActor.allLinks.size + " UrlStoreActor.loaded:"+UrlStoreActor.loaded.size + " UrlStoreActor.started:" +UrlStoreActor.started.size)
+          //break
+        }
+      }
     }
+
   }
 
 }
