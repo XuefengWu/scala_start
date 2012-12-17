@@ -6,24 +6,19 @@ object PageParse {
 
   def getLinksForJava(url: String, content: String): java.util.List[String] = getLinks(url, content)
 
-  def getLinks(url: String, content: String) = {
+  def getLinks(baseUrl: String, content: String) = {
 
-    def getUrlBase(url: String) = {
-      val httpLength = 8
-      if (url.lastIndexOf("/") < httpLength) {
-        url
-      } else {
-        url.take(url.lastIndexOf("/"))
-      }
-    }
-    def getLinkFullPath(url: String, link: String) = {
+    def getLinkFullPath(link: String) = {
 
-      if (link.startsWith("/")) {
-        getUrlBase(url) + link
-      } else if (link.startsWith("http")) {
+      if (link.startsWith("http")) {
         link
       } else {
-        getUrlBase(url) + "/" + link
+        if (link.startsWith("/")) {
+          baseUrl + link
+        } else {
+          baseUrl + "/" + link
+        }
+
       }
     }
 
@@ -91,7 +86,7 @@ object PageParse {
       }
     }
 
-    (links ++ imgs).map(getLinkFullPath(url, _))
+    (links ++ imgs).map(getLinkFullPath(_))
   }
 
 }

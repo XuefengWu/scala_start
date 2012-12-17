@@ -21,31 +21,25 @@ public class Crawler {
 
     public static final ConcurrentLinkedQueue<String> loadedFiles = new ConcurrentLinkedQueue<String>();
 
-    public static final CopyOnWriteArraySet<Integer> loadedLinks = new CopyOnWriteArraySet<Integer>();
+    public static final CopyOnWriteArraySet<String> loadedLinks = new CopyOnWriteArraySet<String>();
 
-    public static final String domain = "http://tutorialspoint.com/";
+    public static final String domain = "http://www.java2s.com";
 
+    public static final String DB_NAME = "java2s";
     /**
      * @param args
      * @throws UnknownHostException
+     * @throws InterruptedException 
      */
-    public static void main(String[] args) throws UnknownHostException {
-        int loadNumber = 10;
-        int parserNumber = 3;
-
-        Executor loadExecutor = Executors.newFixedThreadPool(loadNumber);
-        Executor parseExecutor = Executors.newFixedThreadPool(parserNumber);
-
-        for (int i = 0; i < loadNumber; i++) {
-            loadExecutor.execute(new LoadWorker());
-        }
-
-        for (int i = 0; i < parserNumber; i++) {
-            parseExecutor.execute(new ParserWorker());
-        }
+    public static void main(String[] args) throws UnknownHostException, InterruptedException {
+        int loadNumber = 100;
+        int parserNumber = 5;
+        
+        unloadedLinks.add(domain);
+        new LoadWorker().start();
 
         DB db = new MongoClient("localhost", new MongoClientOptions.Builder().cursorFinalizerEnabled(false).build())
-                .getDB("crawler");
+                .getDB(DB_NAME);
         DBCollection linksColl = db.getCollection("linksCollection");
         DBCollection loadedLinksColl = db.getCollection("loadedLinksColl");
 
@@ -53,7 +47,7 @@ public class Crawler {
         try {
             while (cursor.hasNext()) {
                 String url = cursor.next().get("url").toString();
-                loadedLinks.add(url.hashCode());
+                loadedLinks.add(url);
             }
         } finally {
             cursor.close();
@@ -73,10 +67,39 @@ public class Crawler {
 
         System.out.println("all links:" + list.size());
 
+
+        for (int i = 0; i < loadNumber; i++) {
+        	new LoadWorker().start();
+        }
+
+        for (int i = 0; i < parserNumber; i++) {
+        	new ParserWorker().start();
+        }
+
+        
         for (String lnk : list) {
-            if (!loadedLinks.contains(lnk.hashCode())) {
+            if (!loadedLinks.contains(lnk)) {
                 unloadedLinks.add(lnk);
             }
         }
+        
+        System.out.println("all started");
     }
+    
+    
+	public static boolean isInvalidate(String url) {
+		return !url.startsWith(Crawler.domain)
+				|| url.contains("/listtutorials/")
+				|| url.contains("/listtutorial/") || url.contains("/rate/")
+				|| url.contains("/tag/") || url.contains("/cgi-bin/") 
+				|| url.contains("/shorttutorials/") || url.contains("mailto:") 
+				|| url.contains("#ts-fab-")|| url.contains("/viewtutorial/")
+				|| url.contains("/favorite/")|| url.contains("/wp-content/")
+				|| url.contains("/newtutorials/")|| url.contains("/wp-content/")
+				|| url.contains("/ftp:/")|| url.contains("/go/")
+				|| url.contains("/viewtopic.php?")|| url.contains("/profile.php?")
+				|| url.contains("/viewtopic.php?")|| url.contains("/profile.php?")
+				|| url.contains("/login.php?")|| url.contains("/groupcp.php?")
+				|| url.contains("/memberlist.php?")|| url.contains("/../");
+	}
 }

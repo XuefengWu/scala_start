@@ -35,6 +35,8 @@ object UrlFile {
         "page.html"
       }
 
+      new File(dir).mkdirs()
+      
       val path = (dir + "/") + pageName.replaceAll(":", "")
       urlPath.put(url, path)
       path
