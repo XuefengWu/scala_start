@@ -1,24 +1,27 @@
 package util
+ 
+object PageParseUtil {
+  
+  def getLinks(url: String, content: String) = {
+	 
+    def isHtml(url: String) = !(url.endsWith("gif") || url.endsWith("png") || url.endsWith("jpg"))
+    
+    def getUrlBase(url: String) = {
+      val httpLength = 8
+      if (url.lastIndexOf("/") < httpLength) {
+        url
+      } else {
+        url.take(url.lastIndexOf("/"))
+      }
+    }
+    def getLinkFullPath(url: String, link: String) = {
 
-import scala.collection.convert.WrapAsJava._
-
-object PageParse {
-
-  def getLinksForJava(url: String, content: String): java.util.List[String] = getLinks(url, content)
-
-  def getLinks(baseUrl: String, content: String) = {
-
-    def getLinkFullPath(link: String) = {
-
-      if (link.startsWith("http")) {
+      if (link.startsWith("/")) {
+        getUrlBase(url) + link
+      } else if (link.startsWith("http")) {
         link
       } else {
-        if (link.startsWith("/")) {
-          baseUrl + link
-        } else {
-          baseUrl + "/" + link
-        }
-
+        getUrlBase(url) + "/" + link
       }
     }
 
@@ -26,20 +29,20 @@ object PageParse {
     // the Verbose tag to allow an easier-to-read regular
     // expression for matching.
     val lnkPattern = """(?xi)
-            < a
-            (
-                \s+
-                \w+
-                \s*=\s*
-                (
-                    "[^"]*"
-                    |
-                    '[^']*'
-                )
-            )+
-            \s*
-            >
-        """
+			< a
+			(
+				\s+
+				\w+
+				\s*=\s*
+				(
+					"[^"]*"
+					|
+					'[^']*'
+				)
+			)+
+			\s*
+			>
+		"""
 
     // Gather all occurences of the pattern in the content.
     def links = lnkPattern.r.findAllIn(content).foldLeft(List[String]()) {
@@ -63,20 +66,20 @@ object PageParse {
     }
 
     val imgPattern = """(?xi)
-            < img
-            (
-                \s+
-                \w+
-                \s*=\s*
-                (
-                    "[^"]*"
-                    |
-                    '[^']*'
-                )
-            )+
-            \s*
-            /?>
-        """
+			< img
+			(
+				\s+
+				\w+
+				\s*=\s*
+				(
+					"[^"]*"
+					|
+					'[^']*'
+				)
+			)+
+			\s*
+			/?>
+		"""
     def imgs = imgPattern.r.findAllIn(content).map { imgTag =>
       val im = "/[^'\"]+".r.findFirstIn(imgTag).getOrElse("")
       if (im.startsWith("//")) {
@@ -85,8 +88,12 @@ object PageParse {
         im
       }
     }
-
-    (links ++ imgs).map(getLinkFullPath(_))
+    if(isHtml(url)){
+    	(links ++ imgs).map(getLinkFullPath(url, _))
+    } else {
+      Nil
+    }
+    
   }
-
+ 
 }

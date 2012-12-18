@@ -2,6 +2,7 @@ package actors
 
 import akka.actor.{ ActorSystem, Props }
 import com.typesafe.config.ConfigFactory
+import akka.routing.RoundRobinRouter
 
 object Main extends App {
 
@@ -12,6 +13,7 @@ object Main extends App {
   println(system.dispatchers.defaultGlobalDispatcher)
   val domain = "tutorialspoint.com"
 
-  system.actorOf(Props[UrlStoreActor]) ! Result(List("http://tutorialspoint.com"))
-
+  val  storActor = system.actorOf(Props[UrlStoreActor])//.withRouter(RoundRobinRouter(Conf.nrOfUrlLoader)))
+  storActor ! Result(List("http://tutorialspoint.com"))
+  storActor ! Restart
 }
