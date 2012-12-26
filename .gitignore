@@ -18,3 +18,11 @@ target
 */.classpath
 */.cache
 */.project
+bin
+bin/*
+.target
+.target/*
+*/bin
+*/bin/*
+*/.target
+*/.target/*
