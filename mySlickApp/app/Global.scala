@@ -8,7 +8,7 @@ import Database.threadLocalSession
 
 import play.api.Application
 import play.api.Play.current
-import models.Bars
+import models.Companies
 
 object Global extends GlobalSettings {
 
@@ -17,7 +17,7 @@ object Global extends GlobalSettings {
     lazy val database = Database.forDataSource(DB.getDataSource())
 
     database .withSession {
-      Bars.ddl.create
+      Companies.ddl.create
     }
   }
 }

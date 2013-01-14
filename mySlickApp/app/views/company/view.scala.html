@@ -1,0 +1,19 @@
+@(company: Option[Company])
+
+@import helper._
+
+
+@main(company.map(v => v.name).getOrElse("Can not find this Company"))  {
+    
+    <h1>@company.map(v => v.name).getOrElse("Can not find this Company")</h1>
+ 
+ 
+       <div class="actions">
+       	   @company.map{v =>
+       	  	<a href="@routes.Companies.edit(v.id.get)" class="btn">Edit</a> 
+       	   }.getOrElse("")
+       	   
+          <a href="@routes.Companies.list()" class="btn">Back to list</a> 
+      </div>
+      
+}
