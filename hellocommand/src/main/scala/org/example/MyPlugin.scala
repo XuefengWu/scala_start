@@ -4,7 +4,7 @@ import sbt._
 import Keys._
 object MyPlugin extends Plugin
 {
-  override lazy val settings = Seq(commands ++= Seq(myCommand,helloAll,failIfTrue,printState))
+  override lazy val settings = Seq(commands += myCommand,helloAll,failIfTrue,printState))
 
   lazy val myCommand = 
     Command.single("hello") { (state: State, name: String) =>
