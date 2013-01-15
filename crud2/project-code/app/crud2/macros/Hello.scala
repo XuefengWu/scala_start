@@ -10,7 +10,7 @@ object Hello {
     import c.universe._
     reify { 
       println("Hello Macros!") 
-      "Hello Macros!"
+      "Hello Macros Comes!"
     }
   }
     

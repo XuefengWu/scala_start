@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     jdbc,
     anorm,
-    "crud2" %% "crud2" % "0.1.3"
+    "crud2" %% "crud2" % "0.1.0.3"
   )
 
 
