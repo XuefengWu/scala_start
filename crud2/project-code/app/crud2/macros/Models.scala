@@ -12,8 +12,46 @@ import reflect.macros.Context
  */
 object Models {
 
+  def getImpl[A : c.WeakTypeTag](c: Context)(id: c.Expr[Long])(database: c.Expr[scala.slick.session.Database]): c.Expr[A] = {
+    import c.universe._
+    val companioned = weakTypeOf[A].typeSymbol
+    val companionSymbol = companioned.companionSymbol
+    val companionType = companionSymbol.typeSignature
 
-  def getImpl[A : c.WeakTypeTag](c: Context): c.Expr[A] = {
+
+    val libsPkg = Select(Select(Ident(newTermName("scala")), "slick"), "lifted")
+    val querySelect = Select(libsPkg, "Query")
+    //scala.slick.lifted.Query(this).filter(_.id === id).take(1).firstOption
+    val queryTree = Apply(
+      Select(querySelect, scala.reflect.NameTransformer.encode("apply")),
+      List(This(tpnme.EMPTY))
+    )
+
+    val filterTree = Apply(
+      Select(queryTree, scala.reflect.NameTransformer.encode("filter")),
+      //List(Literal(Constant( scala.reflect.NameTransformer.encode("_.id === id"))))
+      List()
+    )
+    val takeTree = Apply(
+      Select(queryTree, scala.reflect.NameTransformer.encode("take") ),
+      List(Literal(Constant(1)))
+    )
+    val getTree = Apply(
+      Select(takeTree,scala.reflect.NameTransformer.encode("firstOption")),
+      List()
+    )
+
+    // database.withSession(...)
+    val dbTree = Apply(
+      Select(Ident(database.tree.symbol.asTerm), scala.reflect.NameTransformer.encode("withSession")),
+      List(getTree)
+    )
+
+    println("dbTree:\n"+dbTree)
+
+    c.Expr[A](dbTree)
+  }
+  def getSimpleImpl[A : c.WeakTypeTag](c: Context): c.Expr[A] = {
     import c.universe._
     val companioned = weakTypeOf[A].typeSymbol
     val companionSymbol = companioned.companionSymbol

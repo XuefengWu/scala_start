@@ -16,11 +16,8 @@ object Hello {
 
   def addImpl(c: Context)(a: c.Expr[Int])(b: c.Expr[Int]): c.Expr[Int] = {
     import c.universe._
-    val addTree = Apply(
-      Select(a.tree, "+"),
-      List(b.tree))
-
-    println("addTree: " + addTree)
-    c.Expr[Int](addTree)
+    reify {
+     a.splice + b.splice
+    }
   }
 }

@@ -8,7 +8,7 @@ import Database.threadLocalSession
 
 case class Company(id: Option[Long] = None, name: String)
 
-object Companies extends Table[Company]("company") {
+object Companies extends Table[Company]("company") with crud2.models.CRUD2[Company] {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
   // This is the primary key column
@@ -17,12 +17,14 @@ object Companies extends Table[Company]("company") {
   // Every table needs a * projection with the same type as the table's type parameter
   def * = id.? ~ name <> (Company, Company.unapply _)
 
-  def get(id: Long)(implicit database: Database): Option[Company] =
-    database withSession {
-      val result = for (c <- models.Companies if c.id === id) yield c
-      result.firstOption
-    }
+  def getSimple(id: Long)(implicit database: Database): Option[Company] = database.withSession(scala.slick.lifted.Query.apply(this).take(1).firstOption())
 
+  /*
+  def get(id: Long)(implicit database: Database): Option[Company] =
+    database.withSession(
+      scala.slick.lifted.Query(this).filter(_.id === id).take(1).firstOption
+    )
+    */
   def update(id: Long, company: Company)(implicit database: Database) =
     database withSession {
       models.Companies.filter(f => f.id === id).update(company)

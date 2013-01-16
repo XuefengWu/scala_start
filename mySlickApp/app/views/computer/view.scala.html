@@ -1,0 +1,19 @@
+@(computer: Option[Computer])
+
+@import helper._
+
+
+@main(computer.map(v => v.name).getOrElse("Can not find this computer"))  {
+    
+    <h1>@computer.map(v => v.name).getOrElse("Can not find this computer")</h1>
+ 
+ 
+       <div class="actions">
+       	   @computer.map{v =>
+       	  	<a href="@routes.Computers.edit(v.id.get)" class="btn">Edit</a>
+       	   }.getOrElse("")
+       	   
+          <a href="@routes.Computers.list()" class="btn">Back to list</a>
+      </div>
+      
+}

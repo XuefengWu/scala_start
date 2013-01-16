@@ -10,8 +10,7 @@ object Application extends Controller {
   case class User(name: String, age: String)
 
   def index = Action {
-    val user:User = Hello.get[User]
-    Ok(views.html.index(Hello.hello()+user+Hello.add(1)(2)))
+    Ok(views.html.index(Hello.hello()))
   }
   
 

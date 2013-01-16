@@ -12,6 +12,7 @@ object ApplicationBuild extends Build {
     jdbc,
     anorm,
     "com.typesafe" %% "slick" % "1.0.0-RC1" ,
+    "crud2" %% "crud2" % "0.1.0.3",
   "org.apache.httpcomponents" % "httpclient"  % "4.2.2"
   )
 

@@ -10,10 +10,12 @@ import language.experimental.macros
  */
 object Hello {
 
+  def printparam(format:String,params: Any*): Unit = macro crud2.macros.PrintfMacros.printf_impl
+
   def hello() = macro crud2.macros.Hello.hello_impl
 
-  def get[T] = macro crud2.macros.Models.getImpl[T]
+  def get[T](id: Long)(implicit database: scala.slick.session.Database)  = macro crud2.macros.Models.getImpl[T]
   
-  def add(a:Int)(b:Int):Int = macro crud2.macros.Hello.addImpl
-  
+  def add(a:Int)(implicit b:Int):Int = macro crud2.macros.Hello.addImpl
+
 }

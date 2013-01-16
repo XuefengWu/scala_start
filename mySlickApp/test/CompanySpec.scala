@@ -6,6 +6,7 @@ import org.specs2.mutable.Specification
 import play.api.test.{FakeRequest, FakeApplication}
 import play.api.test.Helpers._
 import org.junit.{After, Before}
+import play.api.db.DB
 
 // Use the implicit threadLocalSession
 
@@ -64,6 +65,28 @@ class CompanySpec extends Specification {
       }
     }
 
+    "be getable" in {
+      implicit lazy val database = Database.forURL("jdbc:h2:mem:test3", driver = "org.h2.Driver")
+
+      Database.forURL("jdbc:h2:mem:test3", driver = "org.h2.Driver") withSession {
+
+
+        Companies.ddl.create
+        Companies.insert(Company(None, "foo"))
+        val b = for (b <- Companies) yield b
+        val b1Opt = Companies.get(1L)
+        b1Opt must beSome
+        val b1 = b1Opt.get
+        b1.id.get === 1
+        val nQuery = Companies.filter(b => b.id === 1L).map(_.name)
+        nQuery.update("baa")
+
+        val b2 = (for (b <- Companies) yield b).first
+        b2.id.get === 1
+        b2.name === "baa"
+        Companies.ddl.drop
+      }
+    }
 
   }
 }

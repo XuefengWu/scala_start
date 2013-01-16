@@ -26,8 +26,19 @@ class ApplicationSpec extends Specification {
         
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "text/html")
-        contentAsString(home) must contain ("Your new application is ready.")
+        contentAsString(home) must contain ("Hello")
       }
+    }
+
+    "macro call" in {
+      import crud2.controllers.Hello
+      implicit val b = 2
+      Hello.add(1) === 3
+    }
+
+    "macro printf call" in {
+      crud2.macros.PrintfMacros.printf("%d",2)
+      1 ===  1
     }
   }
 }

@@ -1,0 +1,26 @@
+@(computerForm: Form[Computer])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) } 
+
+@main("Create Computer")  {
+    
+    <h1>Add a Computer</h1>
+    
+    @form(routes.Computers.save()) {
+        
+        <fieldset>
+        
+            @inputText(computerForm("name"), '_label -> "Computer name")
+
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Create this Computer" class="btn primary"> or
+            <a href="@routes.Computers.list()" class="btn">Cancel</a>
+        </div>
+        
+    }
+    
+}

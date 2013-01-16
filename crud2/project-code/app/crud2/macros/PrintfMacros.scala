@@ -6,7 +6,7 @@ import scala.collection.mutable.{ ListBuffer, Stack }
 
 object PrintfMacros {
 
-  //def printparam(param: Any): Unit = macro printparam_impl
+  def printparam(format:String,params: Any*): Unit = macro printf_impl
 
   
   //macro definition
@@ -31,6 +31,7 @@ object PrintfMacros {
     // create ASTs (abstract syntax trees) which represent Scala code. 
     // reify provides a shortcut for creating ASTs
     val stats = evals ++ refs.map(ref => reify(print(c.Expr[Any](ref).splice)).tree)
+    println("stats:\n"+stats)
     // combines all the generated code into a Block
     c.Expr[Unit](Block(stats.toList, Literal(Constant(()))))
   }

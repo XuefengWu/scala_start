@@ -1,6 +1,7 @@
 package crud2.models
 
 import language.experimental.macros
+
 /**
  * Created with IntelliJ IDEA.
  * User: Orna
@@ -8,7 +9,6 @@ import language.experimental.macros
  * Time: 下午9:00
  * To change this template use File | Settings | File Templates.
  */
-trait CRUD2 {
-
-  def get[T] = macro crud2.macros.Models.getImpl[T]
+trait CRUD2[T] {
+  def get(id: Long)(implicit database: scala.slick.session.Database) = macro crud2.macros.Models.getImpl[Option[T]]
 }
