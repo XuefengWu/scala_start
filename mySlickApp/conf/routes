@@ -5,11 +5,12 @@
 # Home page
 GET     /                           controllers.Application.index
 
-# create new Company
+## Company ##
+# create
 POST    /companies/new              controllers.Companies.save
 GET     /companies/new              controllers.Companies.create
 
-# retrieve Company
+# retrieve
 GET     /companies                  controllers.Companies.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
 GET     /companies/:id              controllers.Companies.view(id:Long)
 
@@ -19,6 +20,22 @@ POST    /companies/:id/edit         controllers.Companies.update(id:Long)
 
 # delete
 POST    /companies/:id/delete       controllers.Companies.delete(id:Long)
+
+## Computer ##
+# create
+POST    /computers/new              controllers.Computers.save
+GET     /computers/new              controllers.Computers.create
+
+# retrieve
+GET     /computers                  controllers.Computers.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+GET     /computers/:id              controllers.Computers.view(id:Long)
+
+# update
+GET     /computers/:id/edit         controllers.Computers.edit(id:Long)
+POST    /computers/:id/edit         controllers.Computers.update(id:Long)
+
+# delete
+POST    /computers/:id/delete       controllers.Computers.delete(id:Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

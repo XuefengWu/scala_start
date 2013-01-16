@@ -39,7 +39,7 @@ object Companies extends Controller  {
       "name" -> nonEmptyText)(Company.apply)(Company.unapply))
 
   def create = Action {
-    Ok(html.company.createForm(companyForm))
+    Ok(html.company.create(companyForm))
   }
 
   def save = Action {
@@ -67,7 +67,7 @@ object Companies extends Controller  {
   def edit(id: Long) = Action {
     val company:Option[Company] = models.Companies.get(id)
     company.map{ v =>
-       Ok(html.company.editForm(id,companyForm.fill(v)))
+       Ok(html.company.edit(id,companyForm.fill(v)))
     }.getOrElse(NotFound)
     
   }
