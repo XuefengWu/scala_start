@@ -11,7 +11,7 @@ object Application extends Controller {
 
   def index = Action {
     val user:User = Hello.get[User]
-    Ok(views.html.index(Hello.hello()+user))
+    Ok(views.html.index(Hello.hello()+user+Hello.add(1)(2)))
   }
   
 

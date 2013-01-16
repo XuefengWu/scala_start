@@ -13,4 +13,7 @@ object Hello {
   def hello() = macro crud2.macros.Hello.hello_impl
 
   def get[T] = macro crud2.macros.Models.getImpl[T]
+  
+  def add(a:Int)(b:Int):Int = macro crud2.macros.Hello.addImpl
+  
 }
