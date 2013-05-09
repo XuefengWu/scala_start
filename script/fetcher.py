@@ -1,11 +1,14 @@
-﻿import urllib2,codecs,string
+import urllib2,codecs,string
 from threading import Thread,Lock
 from Queue import Queue
 import time
  
 class Fetcher:
     def __init__(self,threads):
-        self.opener = urllib2.build_opener(urllib2.HTTPHandler)
+        proxy_support = urllib2.ProxyHandler({"http":"http://ec2-54-251-150-200.ap-southeast-1.compute.amazonaws.com:80"})
+        self.opener = urllib2.build_opener(proxy_support)
+        urllib2.install_opener(self.opener)
+        #self.opener = urllib2.build_opener(urllib2.HTTPHandler)
         self.lock = Lock() #线程锁
         self.q_req = Queue() #任务队列
         self.q_ans = Queue() #完成队列
@@ -47,12 +50,17 @@ class Fetcher:
             time.sleep(0.1) # don't spam
  
 if __name__ == "__main__":
-    links = [ 'http://shanghai.edeng.cn/jiedaoxinxi/%d.html'%i for i in range(52540000,52549717) ]
-    f = Fetcher(threads=10)
+
+
+    links = [ 'http://www.f202.cn/web1/%d.shtml'%i for i in range(1,9999) ]
+    f = Fetcher(threads=1)
     for url in links:
         f.push(url)
     while f.taskleft():
-        url,content = f.pop()		
-        fp = open("D:/Workstation/spider/shanghai.edeng/"+string.split(url,"/")[4],mode='w+')
-        fp.write(content)
-        fp.close()		        
+        url,content = f.pop()
+        if not "404 Not Found" in content:
+            fp = open("D:/tmp/f202/web1/"+string.split(url,"/")[4],mode='w+')
+            fp.write(content)
+            fp.close() 	  
+        else:
+            print(string.split(url,"/")[4])      
