@@ -1,0 +1,103 @@
+@(reportId:Long,currentPage: Page[TestCase], currentOrderBy: Int)(implicit flash: play.api.mvc.Flash)
+
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage: Int, newOrderBy: Option[Int] = None) = @{
+    routes.TestCaseController.list(
+    newPage, 
+    newOrderBy.map { orderBy =>
+        if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
+    }.getOrElse(currentOrderBy))
+    
+}
+
+@**********************************
+* Helper generating table headers *
+***********************************@
+@header(orderBy: Int, title: String) = {
+    <th class="col@orderBy header @if(scala.math.abs(currentOrderBy) == orderBy) @{if(currentOrderBy < 0) "headerSortDown" else "headerSortUp"}">
+        <a href="@link(0, Some(orderBy))">@title</a>
+    </th>
+}
+
+@display(msg:String,name:String,classname:String) = @{if(msg.length > 255) msg.substring(45+name.length+classname.length,255+name.length+classname.length) else msg}
+
+@main {
+    
+    <h1>@Messages("testcase.list.title", currentPage.total)</h1>
+
+    @flash.get("success").map { message =>
+        <div class="alert-message warning">
+            <strong>Done!</strong> @message
+        </div>
+    }
+ 
+     <div id="actions"> 
+         @helper.form(action=routes.TestCaseController.send(reportId)) { 
+            <input type="submit" id="searchsubmit" value="Send Mail" class="btn btn-primary">
+        }
+    </div>
+
+    @Option(currentPage.items).filterNot(_.isEmpty).map { entities =>
+        
+        <table class="computers table table-striped table-bordered table-hover table-condensed">
+            <thead>
+                <tr>
+                    @header(2, "Class")
+                    @header(3, "Name")
+                    @header(4, "Time")
+                    @header(5, "Type")
+                    @header(6, "Message")
+                </tr>
+            </thead>
+            <tbody>
+                @entities.map { 
+                 case entity => {
+                        <tr>
+                            <td><a href="@routes.TestCaseController.view(entity.id.get)">@entity.classname</a></td>
+                            <td>@entity.name</td>
+                            <td>@entity.time</td>
+                            <td>@entity.typ</td>
+                            <td>@display(entity.message,entity.name,entity.classname)</td>          
+                        </tr>
+                     }
+                }
+
+            </tbody>
+        </table>
+
+        <div id="pagination" class="pagination">
+            <ul>
+                @currentPage.prev.map { page =>
+                    <li class="prev">
+                        <a href="@link(page)">&larr; Previous</a>
+                    </li> 
+                }.getOrElse {
+                    <li class="prev disabled">
+                        <a>&larr; Previous</a>
+                    </li>
+                }
+                <li class="current">
+                    <a>Displaying @(currentPage.offset + 1) to @(currentPage.offset + entities.size) of @currentPage.total</a>
+                </li>
+                @currentPage.next.map { page =>
+                    <li class="next">
+                        <a href="@link(page)">Next &rarr;</a>
+                    </li> 
+                }.getOrElse {
+                    <li class="next disabled">
+                        <a>Next &rarr;</a>
+                    </li>
+                }
+            </ul>
+        </div>
+        
+    }.getOrElse {
+        
+        <div class="well">
+            <em>Nothing to display</em>
+        </div>
+        
+    }   
+}

@@ -1,0 +1,17 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET      /                           controllers.TestCaseController.index
+
+
+#TestCases
+GET      /tc/:rid                    controllers.TestCaseController.list(rid:Long,p:Int ?= 0, s:Int ?= 2)
+POST     /tc/imports             controllers.TestCaseController.imports
+GET     /tc/mail/:rid             controllers.TestCaseController.mail(rid:Long)
+POST     /tc/mail/:rid             controllers.TestCaseController.send(rid:Long)
+GET     /tc/detail/:id             controllers.TestCaseController.view(id:Long)
+
+# Map static resources from the /public folder to the /assets URL path
+GET      /assets/*file               controllers.Assets.at(path="/public", file)

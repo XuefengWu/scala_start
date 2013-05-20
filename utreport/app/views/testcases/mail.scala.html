@@ -1,0 +1,64 @@
+@(currentPage: Seq[TestCase],site:String, diffs: Seq[TestCaseDiff])
+ 
+
+@**********************************
+* Helper generating table headers *
+***********************************@
+@header(orderBy: Int, title: String) = {
+    <th class="col@orderBy header " style="border-top: 1px solid #ddd;border-left: 1px solid #ddd;">
+        <a href="@site">@title</a>
+    </th>
+}
+
+@td(title:String) = {
+<td style="border-top: 1px solid #ddd;border-left: 1px solid #ddd;">@title</td>
+}
+
+@display(msg:String,name:String,classname:String) = @{if(msg.length > 255) msg.substring(45+name.length+classname.length,255+name.length+classname.length) else msg}
+
+@blank {
+    
+    	<div>
+    		<a href="@site"><img src="cid:testcases"></a>
+    	</div>
+    	<div>
+    		<a href="@site"><img src="cid:test_fails"></a>
+    	</div>
+        <table class="computers table table-striped table-bordered table-hover table-condensed" style="border: 1px solid #ddd;border-color: gray;">
+            <thead>
+                <tr>
+                    @header(2, "Class")
+                    @header(3, "Name")
+                    @header(5, "Type")
+                    @header(6, "Message")
+                </tr>
+            </thead>
+            <tbody>
+                @currentPage.map { entity => 
+               
+                        <tr>
+                            @td(entity.classname)
+                            @td(entity.name)
+                            @td(entity.typ)
+                            @td(display(entity.message,entity.name,entity.classname))          
+                        </tr>
+                   
+                }
+
+            </tbody>
+        </table>
+        @if(diffs.size > 0) {
+            <div>
+            <span>Test Cases Diff</span>
+            <table class="computers table table-striped table-bordered table-hover table-condensed">
+            <tbody>
+                @diffs.map { entity => 
+                        <tr>
+                            <td>@entity.name</td>
+                        </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+ 	}
+}

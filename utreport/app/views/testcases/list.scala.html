@@ -1,0 +1,94 @@
+@(currentPage: Page[TestReport], currentOrderBy: Int, diffs: Seq[TestCaseDiff])(implicit flash: play.api.mvc.Flash)
+
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage: Int, newOrderBy: Option[Int] = None) = @{
+    routes.TestCaseController.list(
+    newPage, 
+    newOrderBy.map { orderBy =>
+        if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
+    }.getOrElse(currentOrderBy))
+    
+}
+
+@**********************************
+* Helper generating table headers *
+***********************************@
+@header(orderBy: Int, title: String) = {
+    <th class="col@orderBy header @if(scala.math.abs(currentOrderBy) == orderBy) @{if(currentOrderBy < 0) "headerSortDown" else "headerSortUp"}">
+        <a href="@link(0, Some(orderBy))">@title</a>
+    </th>
+}
+
+
+@main {
+    
+    <h1>@Messages("testcase.list.title", currentPage.total)</h1>
+
+    @flash.get("success").map { message =>
+        <div class="alert-message warning">
+            <strong>Done!</strong> @message
+        </div>
+    }
+ 
+     <div id="actions">
+        @helper.form(action=routes.TestCaseController.imports()) { 
+            <input type="submit" id="searchsubmit" value="Import UT Report" class="btn btn-primary">
+        }
+        
+    </div>
+ 
+	
+    @Option(currentPage.items).filterNot(_.isEmpty).map { entities =>
+        
+        <table class="computers table table-striped table-bordered table-hover table-condensed">
+            <thead>
+                <tr>
+                    @header(2, "Date")
+                    @header(3, "Total")
+                    @header(4, "Fails")
+                    @header(5, "Errors")
+                </tr>
+            </thead>
+            <tbody>
+                @entities.map { 
+                 case entity => {
+                        <tr>
+                            <td><a href="@routes.TestCaseController.list(entity.id.get)">@entity.date</a></td>
+                            <td>@entity.total</td>
+                            <td>@entity.fails</td>
+                            <td>@entity.errors</td>
+                        </tr>
+                     }
+                }
+
+            </tbody>
+        </table>
+        
+    }.getOrElse {
+        
+        <div class="well">
+            <em>Nothing to display</em>
+        </div>
+        
+    }   
+    
+    <div>
+            <table class="computers table table-striped table-bordered table-hover table-condensed">
+            <thead>
+                <tr>
+                    @header(2, "Test Cases")
+                </tr>
+            </thead>
+            <tbody>
+                @diffs.map { entity => 
+                        <tr>
+                            <td>@entity.name</td>
+                        </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+}

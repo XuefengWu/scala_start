@@ -1,0 +1,5 @@
+# Messages
+
+coffees.list.title={0,choice,0#No coffees|1#One coffee|1<{0,number,integer} coffees} found
+
+testcase.list.title={0,choice,0#No TeseCases|1#One TeseCase|1<{0,number,integer} TeseCases} found

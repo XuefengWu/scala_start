@@ -1,0 +1,15 @@
+@(tc:TestCase)(implicit flash: play.api.mvc.Flash)
+ 
+@main {
+        <h3><a href="@routes.TestCaseController.list(tc.reportId)">Back to cases</a></h3>
+        <table class="computers table table-striped table-bordered table-hover table-condensed">
+            <tbody>
+                <tr><td>Class:</td><td>@tc.classname</td></tr>
+                <tr><td>Name:</td><td>@tc.name</td></tr>
+                <tr><td>Spend:</td><td>@tc.time</td></tr>
+                <tr><td>Type:</td><td>@tc.typ</td></tr>
+                <tr><td>Message:</td><td>@tc.message</td></tr>
+            </tbody>
+        </table>
+    
+}
