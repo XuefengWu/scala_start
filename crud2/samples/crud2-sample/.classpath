@@ -54,7 +54,8 @@
   <classpathentry path="C:\util\play-2.1-RC1\repository\local\com.h2database\h2\1.3.168\jars\h2.jar" kind="lib"></classpathentry>
   <classpathentry path="C:\util\play-2.1-RC1\repository\local\tyrex\tyrex\1.0.1\jars\tyrex.jar" kind="lib"></classpathentry>
   <classpathentry kind="lib" path="C:\util\play-2.1-RC1\repository\local\play\anorm_2.10\2.1-RC1\jars\anorm_2.10.jar" sourcepath="C:\util\play-2.1-RC1\repository\local\play\anorm_2.10\2.1-RC1\srcs\anorm_2.10-sources.jar"></classpathentry>
-  <classpathentry kind="lib" path="C:\util\play-2.1-RC1\repository\local\crud2\crud2_2.10\0.1.2\jars\crud2_2.10.jar" sourcepath="C:\util\play-2.1-RC1\repository\local\crud2\crud2_2.10\0.1.2\srcs\crud2_2.10-sources.jar"></classpathentry>
+  <classpathentry kind="lib" path="C:\util\play-2.1-RC1\repository\local\crud2\crud2_2.10\0.1.0.3\jars\crud2_2.10.jar" sourcepath="C:\util\play-2.1-RC1\repository\local\crud2\crud2_2.10\0.1.0.3\srcs\crud2_2.10-sources.jar"></classpathentry>
+  <classpathentry kind="lib" path="C:\util\play-2.1-RC1\framework\.\..\repository\cache\com.typesafe\slick_2.10\jars\slick_2.10-1.0.0-RC1.jar" sourcepath="C:\util\play-2.1-RC1\framework\.\..\repository\cache\com.typesafe\slick_2.10\srcs\slick_2.10-1.0.0-RC1-sources.jar"></classpathentry>
   <classpathentry kind="lib" path="C:\util\play-2.1-RC1\repository\local\play\play-test_2.10\2.1-RC1\jars\play-test_2.10.jar" sourcepath="C:\util\play-2.1-RC1\repository\local\play\play-test_2.10\2.1-RC1\srcs\play-test_2.10-sources.jar"></classpathentry>
   <classpathentry path="C:\util\play-2.1-RC1\repository\local\junit\junit-dep\4.10\jars\junit-dep.jar" kind="lib"></classpathentry>
   <classpathentry path="C:\util\play-2.1-RC1\repository\local\org.hamcrest\hamcrest-core\1.1\jars\hamcrest-core.jar" kind="lib"></classpathentry>
