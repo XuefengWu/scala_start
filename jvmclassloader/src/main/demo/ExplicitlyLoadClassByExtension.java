@@ -20,13 +20,6 @@ public class ExplicitlyLoadClassByExtension {
             System.out.println("ExplicitlyLoadClassByExtension.getClass().getClassLoader() : "
                     + ExplicitlyLoadClassByExtension.class.getClassLoader());
 
-
-            try {
-                Thread.sleep(100000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-
             //trying to explicitly load this class again using Extension class loader
             System.out.println("ExplicitlyLoadClassByExtension.getClass().getClassLoader().getParent() : "
                     + ExplicitlyLoadClassByExtension.class.getClassLoader().getParent());
